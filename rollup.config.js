@@ -5,14 +5,22 @@ import commonjs from "@rollup/plugin-commonjs";
 import terser from "@rollup/plugin-terser";
 
 import pkg from "./package.json" assert { type: "json" };
+import { getFiles } from "./sripts/getFiles.js";
 
 const extensions = [".js", ".ts"];
 const external = Object.keys(pkg.peerDependencies ?? {});
 
 export default {
-  input: "./src/index.ts",
+  input: [
+    "./src/index.ts",
+    ...getFiles("./src/logic/classes", extensions),
+    ...getFiles("./src/logic/constants", extensions),
+    ...getFiles("./src/logic/functions", extensions),
+    ...getFiles("./src/logic/utils", extensions),
+    ...getFiles("./src/logic/typing", extensions),
+  ],
   output: {
-    file: "dist/index.js",
+    dir: "dist",
     format: "esm",
   },
   plugins: [
@@ -21,7 +29,7 @@ export default {
     typescript({
       tsconfig: "./tsconfig.build.json",
       declaration: true,
-      declarationDir: "/",
+      declarationDir: "./dist/",
       types: external,
     }),
     terser(),

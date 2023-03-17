@@ -6,6 +6,7 @@
   "exclude": [
     "node_modules",
     "src/vite-env.d.ts",
-    "index.html"
+    "index.html",
+    "scripts"
   ]
 }

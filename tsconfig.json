@@ -41,6 +41,7 @@
   },
   "include": [
     "src",
+    "scripts",
     "rollup.config.js",
     "rollup.config.visualizer.js"
   ]
