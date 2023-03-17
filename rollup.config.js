@@ -13,7 +13,6 @@ export default {
   output: {
     file: "dist/index.js",
     format: "esm",
-    sourcemap: true,
   },
   plugins: [
     nodeResolve({ extensions }),
