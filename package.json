@@ -1,7 +1,7 @@
 {
   "name": "@tuentyfaiv/http",
   "description": "Library for http requests based on fetch",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "exports": {
     "./package.json": "./package.json",
