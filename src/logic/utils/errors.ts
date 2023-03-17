@@ -1,7 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import swal from "sweetalert";
 
-import type { HttpConnectionError } from "@typing/classes/http";
+import type { HttpConnectionError } from "../typing/classes/http";
 
 export class CustomError extends Error {
   date: Date;

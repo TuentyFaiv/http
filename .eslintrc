@@ -20,9 +20,7 @@
   "settings": {
     "import/parsers": {
       "@typescript-eslint/parser": [
-        ".ts",
-        "d.ts",
-        ".js"
+        ".ts"
       ]
     },
     "import/resolver": {

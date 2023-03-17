@@ -1,5 +1,5 @@
-import { HTTPContentType, HTTPMetod } from "@typing/classes/http";
-import { ServiceError, throwError } from "@utils/errors";
+import { HTTPContentType, HTTPMetod } from "../typing/classes/http";
+import { ServiceError, throwError } from "../utils/errors";
 
 import type {
   HTTPContract,
@@ -11,8 +11,8 @@ import type {
   HTTPConnectionReturn,
   HTTPBodyFiles,
   HTTPLog,
-} from "@typing/classes/http";
-import type { ObjStrCustom } from "@typing/globals/types";
+} from "../typing/classes/http";
+import type { ObjStrCustom } from "../typing/globals/types";
 
 export class Http implements HTTPContract {
   #api: string;

@@ -1,1 +1,1 @@
-export { Http } from "@classes";
+export { Http } from "./logic/classes";
