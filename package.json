@@ -1,6 +1,6 @@
 {
-  "name": "ditto-vanilla-library",
-  "description": "Library description",
+  "name": "@tuentyfaiv/http",
+  "description": "Library for http requests based on fetch",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
@@ -8,7 +8,8 @@
   "author": "Tonalli López <contact@tuentyfaiv.com>",
   "license": "MIT",
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "directories": {
     "dist": "dist"
@@ -41,5 +42,18 @@
   },
   "peerDependencies": {
     "sweetalert": "^2.1.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TuentyFaiv/http.git"
+  },
+  "keywords": [
+    "Http",
+    "Library",
+    "TypeScript"
+  ],
+  "bugs": {
+    "url": "https://github.com/TuentyFaiv/http/issues"
+  },
+  "homepage": "https://github.com/TuentyFaiv/http#readme"
 }
