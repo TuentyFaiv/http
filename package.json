@@ -3,9 +3,15 @@
   "description": "Library for http requests based on fetch",
   "version": "0.0.4",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
-    ".": "./dist/index.js"
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   },
   "author": "Tonalli López <contact@tuentyfaiv.com>",
   "license": "MIT",
@@ -20,6 +26,7 @@
     "visualizer": "pnpm clean && rollup --config rollup.config.visualizer.js --environment NODE_ENV:production",
     "build": "pnpm clean && rollup -c --environment NODE_ENV:production",
     "dev": "pnpm clean && rollup -c -w",
+    "prepublishOnly": "pnpm build",
     "preview": "vite dev",
     "lint": "eslint ./src/ --fix"
   },
