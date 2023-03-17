@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "Node",
+    "strict": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": false,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "skipLibCheck": true,
+    "baseUrl": "./",
+    "paths": {
+      // Logic
+      "@classes": [
+        "src/logic/classes/index.ts"
+      ],
+      "@constants": [
+        "src/logic/constants/index.ts"
+      ],
+      "@functions": [
+        "src/logic/functions/index.ts"
+      ],
+      "@typing/*": [
+        "src/logic/typing/*"
+      ],
+      "@utils/*": [
+        "src/logic/utils/*"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "rollup.config.js",
+    "rollup.config.visualizer.js"
+  ]
+}
