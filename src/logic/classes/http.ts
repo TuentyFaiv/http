@@ -112,10 +112,16 @@ export class Http implements HTTPContract {
             });
           }
 
+          const hasPayload = (
+            (Object.hasOwn(response, "data") || Object.hasOwn(response, "payload"))
+            && ((Object.hasOwn(response, "result") || Object.hasOwn(response, "success")))
+            && ((Object.hasOwn(response, "error") || Object.hasOwn(response, "message")))
+          );
+
           return {
             success: !!response?.result ?? response?.success,
             message: response?.error ?? response?.message ?? "",
-            payload: response?.data ?? response?.payload,
+            payload: hasPayload ? (response?.data ?? response?.payload) : response,
           };
       }
     } catch (error) {
