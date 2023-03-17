@@ -21,7 +21,7 @@ export default {
       tsconfig: "./tsconfig.build.json",
       declaration: true,
       declarationDir: "/",
-      types: external,
+      // types: external,
     }),
     terser(),
   ],
