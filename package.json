@@ -3,13 +3,14 @@
   "description": "Library for http requests based on fetch",
   "version": "0.0.2",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": "./dist/index.js"
+  },
   "author": "Tonalli López <contact@tuentyfaiv.com>",
   "license": "MIT",
   "files": [
-    "dist",
-    "LICENSE"
+    "dist"
   ],
   "directories": {
     "dist": "dist"
@@ -23,6 +24,7 @@
     "lint": "eslint ./src/ --fix"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-terser": "^0.4.0",
     "@rollup/plugin-typescript": "^11.0.0",

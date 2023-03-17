@@ -1,6 +1,7 @@
 /* eslint-disable import/extensions */
 import typescript from "@rollup/plugin-typescript";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 import terser from "@rollup/plugin-terser";
 
 import pkg from "./package.json" assert { type: "json" };
@@ -16,11 +17,12 @@ export default {
   },
   plugins: [
     nodeResolve({ extensions }),
+    commonjs(),
     typescript({
       tsconfig: "./tsconfig.build.json",
       declaration: true,
       declarationDir: "/",
-      // types: external,
+      types: external,
     }),
     terser(),
   ],
