@@ -16,7 +16,8 @@
   "author": "Tonalli López <contact@tuentyfaiv.com>",
   "license": "MIT",
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "directories": {
     "dist": "dist"

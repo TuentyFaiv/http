@@ -5,7 +5,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import terser from "@rollup/plugin-terser";
 
 import pkg from "./package.json" assert { type: "json" };
-import { getFiles } from "./sripts/getFiles.js";
+import { getFiles } from "./scripts/getFiles.js";
 
 const extensions = [".js", ".ts"];
 const external = Object.keys(pkg.peerDependencies ?? {});
