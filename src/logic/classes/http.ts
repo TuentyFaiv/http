@@ -14,16 +14,21 @@ import type {
 } from "../typing/classes/http";
 import type { ObjStrCustom } from "../typing/globals/types";
 
+import { Storage } from "./storage";
+
 export class Http implements HTTPContract {
   #api: string;
   #headers: Required<Required<HTTPConfigInitial>["headers"]>;
   #params: Required<HTTPConfigInitial>["params"];
   #swal: HTTPConfigInitial["swal"];
+  #storage: Required<HTTPConfigInitial["storage"]>;
 
   static instance: ObjStrCustom<Http> = {};
 
   private constructor(api: string, config?: HTTPConfigInitial) {
-    const token = localStorage.getItem("sessionId") ?? "";
+    this.#storage = config?.storage ?? new Storage();
+
+    const token = this.#storage.getItem("sessionId") ?? "";
 
     this.#api = api;
     this.#headers = {

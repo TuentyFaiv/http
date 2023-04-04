@@ -27,6 +27,7 @@ export interface HTTPContract {
 export interface HTTPConfigInitial {
   params?: ObjStrCustom<unknown>;
   swal?: CustomSwal;
+  storage?: CustomStorage;
   headers?: {
     Authorization?: string;
     "Content-Type"?: HTTPContentType;
@@ -97,4 +98,10 @@ export interface SwalConfig {
   icon: string;
   className: string;
   timer: number;
+}
+
+export interface CustomStorage {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
 }
