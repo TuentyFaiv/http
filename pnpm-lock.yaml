@@ -15,7 +15,6 @@ specifiers:
   rimraf: ^4.4.0
   rollup: ^3.19.1
   rollup-plugin-visualizer: ^5.9.0
-  sweetalert: ^2.1.2
   typescript: ^4.9.3
   vite: ^4.2.0
 
@@ -34,7 +33,6 @@ devDependencies:
   rimraf: 4.4.0
   rollup: 3.19.1
   rollup-plugin-visualizer: 5.9.0_rollup@3.19.1
-  sweetalert: 2.1.2
   typescript: 4.9.5
   vite: 4.2.0
 
@@ -925,10 +923,6 @@ packages:
       is-callable: 1.2.7
       is-date-object: 1.0.5
       is-symbol: 1.0.4
-    dev: true
-
-  /es6-object-assign/1.1.0:
-    resolution: {integrity: sha512-MEl9uirslVwqQU369iHNWZXsI8yaZYGg/D65aOgZkeyFJwHYSxilf7rQzXKI7DdDuBPrBXbfk3sl9hJhmd5AUw==}
     dev: true
 
   /esbuild/0.17.11:
@@ -1938,10 +1932,6 @@ packages:
     engines: {node: '>= 0.8.0'}
     dev: true
 
-  /promise-polyfill/6.1.0:
-    resolution: {integrity: sha512-g0LWaH0gFsxovsU7R5LrrhHhWAWiHRnh1GPrhXnPgYsDkIqjRYUYSZEsej/wtleDrz5xVSIDbeKfidztp2XHFQ==}
-    dev: true
-
   /punycode/2.3.0:
     resolution: {integrity: sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==}
     engines: {node: '>=6'}
@@ -2184,13 +2174,6 @@ packages:
   /supports-preserve-symlinks-flag/1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
-    dev: true
-
-  /sweetalert/2.1.2:
-    resolution: {integrity: sha512-iWx7X4anRBNDa/a+AdTmvAzQtkN1+s4j/JJRWlHpYE8Qimkohs8/XnFcWeYHH2lMA8LRCa5tj2d244If3S/hzA==}
-    dependencies:
-      es6-object-assign: 1.1.0
-      promise-polyfill: 6.1.0
     dev: true
 
   /synckit/0.8.5:

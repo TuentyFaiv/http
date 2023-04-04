@@ -26,6 +26,7 @@ export interface HTTPContract {
 
 export interface HTTPConfigInitial {
   params?: ObjStrCustom<unknown>;
+  swal?: CustomSwal;
   headers?: {
     Authorization?: string;
     "Content-Type"?: HTTPContentType;
@@ -86,4 +87,14 @@ export interface HTTPLog {
   url?: string;
   request?: HTTPConfigRequest;
   response?: unknown;
+}
+
+export type CustomSwal = (config: SwalConfig) => Promise<unknown>;
+
+export interface SwalConfig {
+  title: string;
+  text: string;
+  icon: string;
+  className: string;
+  timer: number;
 }

@@ -18,6 +18,7 @@ export class Http implements HTTPContract {
   #api: string;
   #headers: Required<Required<HTTPConfigInitial>["headers"]>;
   #params: Required<HTTPConfigInitial>["params"];
+  #swal: HTTPConfigInitial["swal"];
 
   static instance: ObjStrCustom<Http> = {};
 
@@ -32,6 +33,7 @@ export class Http implements HTTPContract {
       ...config?.headers,
     };
     this.#params = config?.params ?? {};
+    this.#swal = config?.swal;
 
     Object.freeze(this);
   }
@@ -125,7 +127,7 @@ export class Http implements HTTPContract {
           };
       }
     } catch (error) {
-      throw throwError(error);
+      throw throwError(error, this.#swal);
     }
   }
 

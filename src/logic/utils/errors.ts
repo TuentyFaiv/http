@@ -1,7 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import swal from "sweetalert";
-
-import type { HttpConnectionError } from "../typing/classes/http";
+import type { CustomSwal, HttpConnectionError } from "../typing/classes/http";
 
 export class CustomError extends Error {
   date: Date;
@@ -50,7 +48,7 @@ export class ServiceError extends Error {
   view = () => (this.#data);
 }
 
-export function throwError(error: unknown) {
+export function throwError(error: unknown, swal?: CustomSwal) {
   let message = "¡Oh no!";
   let name = "Error!";
   let title = "Ops!";
@@ -65,7 +63,7 @@ export function throwError(error: unknown) {
   }
 
   if (!name.includes("AbortError")) {
-    swal({
+    swal?.({
       title,
       text: message,
       icon: "error",
