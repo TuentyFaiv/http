@@ -1,65 +1,46 @@
-import type { ObjStrCustom } from "../globals/types";
-
-export enum HTTPMetod {
-  GET = "GET",
-  POST = "POST",
-  PUT = "PUT",
-  DELETE = "DELETE",
-}
-
-export enum HTTPContentType {
-  DOWNLOAD = "DOWNLOAD",
-  JSON = "application/json",
-  PDF = "application/pdf",
-  FILES = "multipart/form-data",
-  TEXT = "text/plain",
-  CSV = "text/csv",
-}
+import type { ContentType, HttpMethod } from "../enums";
 
 export interface HTTPContract {
   setAuth(token: string): void;
-  get<R, P = undefined>(endpoint: string, config: HTTPConfigGet<P>): Promise<HTTPConnectionReturn<R>>;
-  put<T, R, P = undefined>(endpoint: string, body: T, config: HTTPConfigMethod<T, P>): Promise<HTTPConnectionReturn<R>>;
-  post<T, R, P = undefined>(endpoint: string, body: T, config: HTTPConfigMethod<T, P>): Promise<HTTPConnectionReturn<R>>;
-  delete<T, R, P = undefined>(endpoint: string, body: T, config: HTTPConfigMethod<T, P>): Promise<HTTPConnectionReturn<R>>
+  setLang(lang: string): void;
 }
 
-export interface HTTPConfigInitial {
-  params?: ObjStrCustom<unknown>;
+type ConfigGlobalRequest = Omit<HTTPConfigConnection<unknown>, "body" | "params" | "type" | "endpoint" | "errorMessage">;
+
+export interface HTTPConfigInitial extends ConfigGlobalRequest {
   swal?: CustomSwal;
-  storage?: CustomStorage;
+  storage?: CustomStorage | CustomStorageAsync;
   headers?: {
     Authorization?: string;
-    "Content-Type"?: HTTPContentType;
+    "Content-Type"?: HTTPConfigConnection<unknown>["type"];
     "Accept-Language"?: string;
   };
+  params?: Record<string, unknown>;
 }
 
 export interface HTTPConfigRequest {
   signal?: AbortSignal;
   body?: string | FormData;
-  method: HTTPMetod;
-  headers: Required<HTTPConfigInitial>["headers"];
+  method: HttpMethod;
+  headers: Headers;
 }
 
-export type HTTPConfigConnection<T, P = undefined> = {
-  method: HTTPConfigRequest["method"];
-  secure: boolean;
-  endpoint: string;
-  params?: P;
+export interface HTTPConfigConnection<T, P = undefined> extends Pick<HTTPConfigRequest, "signal" | "method"> {
   body?: T;
-  contentType?: HTTPContentType;
+  params?: P;
+  type?: ContentType;
+  secure: boolean;
+  secureParams: boolean;
+  endpoint: string;
   errorMessage?: string;
-  signal?: HTTPConfigRequest["signal"];
   lang?: string;
   log?: boolean;
-};
-
-export interface HTTPConfig {
-  secure?: boolean;
 }
 
-type ExcludeFields = "method" | "endpoint" | "body" | "secure";
+export type HTTPConfig = Partial<Pick<HTTPConfigConnection<unknown>, SecureOptions>>;
+
+type ExcludeFields = "method" | "endpoint" | "body" | SecureOptions;
+type SecureOptions = "secure" | "secureParams";
 
 export type HTTPConfigMethod<T, P> = Omit<HTTPConfigConnection<T, P>, ExcludeFields> & HTTPConfig;
 export type HTTPConfigGet<P> = HTTPConfigMethod<never, P>;
@@ -104,4 +85,10 @@ export interface CustomStorage {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
   removeItem(key: string): void;
+}
+
+export interface CustomStorageAsync {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+  removeItem(key: string): Promise<void>;
 }
