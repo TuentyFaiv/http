@@ -16,7 +16,6 @@ export default {
     ...getFiles("./src/logic/classes", extensions),
     ...getFiles("./src/logic/constants", extensions),
     ...getFiles("./src/logic/functions", extensions),
-    ...getFiles("./src/logic/utils", extensions),
     ...getFiles("./src/logic/typing", extensions),
   ],
   output: {

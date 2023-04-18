@@ -1,35 +1,46 @@
-import type { ContentType, HttpMethod } from "../enums";
+import type { ContentType } from "../enums/content";
+import type { HttpMethod, HttpMethodLower } from "../enums/methods";
 
-export interface HTTPContract {
+type SecureOptions = "secure" | "secureParams";
+type ExcludeFields = SecureOptions | "method" | "endpoint" | "body";
+type GlobalOptions = SecureOptions | "errorMessage" | "lang" | "log";
+
+export type HttpMethods = {
+  [key in Exclude<HttpMethodLower, "get">]: <T, R, P = undefined>(
+    endpoint: string,
+    body: T,
+    config?: HttpConfigMethods<T, P>,
+  ) => Promise<HttpConnectionReturn<R>>;
+} & {
+  get: <R, P = undefined>(endpoint: string, config?: HttpConfigGet<P>) => Promise<HttpConnectionReturn<R>>;
+};
+
+export interface HttpContract {
   setAuth(token: string): void;
   setLang(lang: string): void;
 }
 
-type ConfigGlobalRequest = Partial<Omit<
-HTTPConfigConnection<unknown>,
-"body" | "params" | "type" | "endpoint" | "errorMessage" | "method"
->>;
+export type HttpGlobalConfig = Partial<Pick<HttpConfigConnection<unknown>, GlobalOptions>>;
 
-export interface HTTPConfigInitial extends ConfigGlobalRequest {
-  swal?: CustomSwal;
-  storage?: CustomStorage | CustomStorageAsync;
+export interface HttpConfigInitial extends HttpGlobalConfig {
+  swal?: HttpAlert;
+  storage?: HttpStorage | HttpStorageAsync;
   headers?: {
     Authorization?: string;
-    "Content-Type"?: HTTPConfigConnection<unknown>["type"];
+    "Content-Type"?: HttpConfigConnection<unknown>["type"];
     "Accept-Language"?: string;
   };
   params?: Record<string, unknown>;
 }
 
-export interface HTTPConfigRequest {
+export interface HttpConfigRequest<T> {
   signal?: AbortSignal;
-  body?: string | FormData;
+  body?: T | FormData;
   method: HttpMethod;
   headers: Headers;
 }
 
-export interface HTTPConfigConnection<T, P = undefined> extends Pick<HTTPConfigRequest, "signal" | "method"> {
-  body?: T;
+export interface HttpConfigConnection<T, P = undefined> extends Omit<HttpConfigRequest<T>, "headers"> {
   params?: P;
   type?: ContentType;
   secure: boolean;
@@ -40,15 +51,12 @@ export interface HTTPConfigConnection<T, P = undefined> extends Pick<HTTPConfigR
   log?: boolean;
 }
 
-export type HTTPConfig = Partial<Pick<HTTPConfigConnection<unknown>, SecureOptions>>;
+export type HttpConfig = Partial<Pick<HttpConfigConnection<unknown>, SecureOptions>>;
 
-type ExcludeFields = "method" | "endpoint" | "body" | SecureOptions;
-type SecureOptions = "secure" | "secureParams";
+export type HttpConfigMethods<T, P> = Omit<HttpConfigConnection<T, P>, ExcludeFields> & HttpConfig;
+export type HttpConfigGet<P> = HttpConfigMethods<never, P>;
 
-export type HTTPConfigMethod<T, P> = Omit<HTTPConfigConnection<T, P>, ExcludeFields> & HTTPConfig;
-export type HTTPConfigGet<P> = HTTPConfigMethod<never, P>;
-
-export type HTTPConnectionReturn<T> = {
+export type HttpConnectionReturn<T> = {
   success: boolean;
   message: string;
   payload: T;
@@ -63,20 +71,9 @@ export interface HttpConnectionError {
   status: number;
 }
 
-export type HTTPBodyFiles<T> = {
-  files?: File[];
-  file: File;
-} & T & Record<string, never>;
+export type HttpAlert = (config: HttpAlertConfig) => Promise<unknown>;
 
-export interface HTTPLog {
-  url?: string;
-  request?: HTTPConfigRequest;
-  response?: unknown;
-}
-
-export type CustomSwal = (config: SwalConfig) => Promise<unknown>;
-
-export interface SwalConfig {
+export interface HttpAlertConfig {
   title: string;
   text: string;
   icon: string;
@@ -84,13 +81,13 @@ export interface SwalConfig {
   timer: number;
 }
 
-export interface CustomStorage {
+export interface HttpStorage {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
   removeItem(key: string): void;
 }
 
-export interface CustomStorageAsync {
+export interface HttpStorageAsync {
   getItem(key: string): Promise<string | null>;
   setItem(key: string, value: string): Promise<void>;
   removeItem(key: string): Promise<void>;

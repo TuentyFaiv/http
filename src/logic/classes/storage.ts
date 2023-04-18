@@ -1,6 +1,6 @@
-import type { CustomStorage } from "@typing/classes/http";
+import type { HttpStorage } from "@typing/classes/http";
 
-export class Storage implements CustomStorage {
+export class Storage implements HttpStorage {
   #vault: Map<string, string>;
 
   constructor() {
