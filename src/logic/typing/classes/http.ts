@@ -5,7 +5,10 @@ export interface HTTPContract {
   setLang(lang: string): void;
 }
 
-type ConfigGlobalRequest = Omit<HTTPConfigConnection<unknown>, "body" | "params" | "type" | "endpoint" | "errorMessage">;
+type ConfigGlobalRequest = Partial<Omit<
+HTTPConfigConnection<unknown>,
+"body" | "params" | "type" | "endpoint" | "errorMessage" | "method"
+>>;
 
 export interface HTTPConfigInitial extends ConfigGlobalRequest {
   swal?: CustomSwal;
@@ -52,12 +55,12 @@ export type HTTPConnectionReturn<T> = {
 };
 
 export interface HttpConnectionError {
-  status: string;
+  statusText: string;
   message: string;
   errors: {
     description?: string;
   };
-  code: number;
+  status: number;
 }
 
 export type HTTPBodyFiles<T> = {

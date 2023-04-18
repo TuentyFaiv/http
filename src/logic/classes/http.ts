@@ -127,7 +127,7 @@ export class HttpInstance implements HTTPContract {
       };
 
       const params = this.#makeParams(config.params, config.secureParams);
-      const url = `${this.#api}${config.endpoint}${params}`;
+      const url = `${this.#api === "no-api" ? "" : this.#api}${config.endpoint}${params}`;
 
       if (config.log) this.#log({ url, request: requestConfig });
 
@@ -142,8 +142,8 @@ export class HttpInstance implements HTTPContract {
           if (config.log) this.#log({ response });
           throw new ServiceError({
             message: config.errorMessage ?? "error to request file",
-            code: response.status,
-            status: "error",
+            status: response.status,
+            statusText: "error",
             errors: {
               description: response.statusText,
             },
@@ -163,9 +163,11 @@ export class HttpInstance implements HTTPContract {
         if ((responseJson.error && !responseJson.result) || responseJson.errors || !response.ok) {
           throw new ServiceError({
             message: config.errorMessage ?? responseJson?.error ?? responseJson.message,
-            code: responseJson?.error ?? responseJson?.code ?? "",
-            status: responseJson?.result ?? responseJson?.status ?? "",
-            errors: responseJson?.error ?? responseJson.errors ?? "",
+            status: responseJson?.code ?? response.status,
+            statusText: responseJson?.result
+              ?? responseJson?.status
+              ?? `${response.status}: ${response.statusText || responseJson.error}`,
+            errors: responseJson.errors ?? {},
           });
         }
 
@@ -186,8 +188,8 @@ export class HttpInstance implements HTTPContract {
 
       throw new ServiceError({
         message: "response content type not supported",
-        code: response.status,
-        status: "error",
+        status: response.status,
+        statusText: `${response.status}: ${response.statusText}`,
         errors: {
           description: response.statusText,
         },
