@@ -304,6 +304,7 @@ export class HttpInstance implements HttpContract {
 
   public setAuth = (token: string) => {
     this.#headers.set("Authorization", `Bearer ${token}`);
+    this.#storage.setItem("sessionId", token);
   };
 
   public setLang = (lang: string) => {
