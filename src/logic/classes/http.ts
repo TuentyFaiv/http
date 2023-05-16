@@ -25,7 +25,7 @@ export class HttpInstance implements HttpContract {
   #headers: Headers;
   #params: Required<HttpConfigInitial>["params"];
   #swal: HttpConfigInitial["swal"];
-  #storage: HttpConfigInitial["storage"];
+  #storage: Required<HttpConfigInitial>["storage"];
   #config: HttpGlobalConfig;
 
   static instance: Record<string, Http> = {};
@@ -48,15 +48,7 @@ export class HttpInstance implements HttpContract {
       "Content-Type": ContentType.ApplicationJson,
     });
 
-    const token = this.#storage.getItem("sessionId") ?? "";
-
-    if (token instanceof Promise) {
-      token.then((value) => {
-        this.#headers.set("Authorization", `Bearer ${value ?? ""}`);
-      });
-    } else {
-      this.#headers.set("Authorization", `Bearer ${token}`);
-    }
+    this.#getStoraged();
 
     Object.freeze(this);
   }
@@ -129,6 +121,7 @@ export class HttpInstance implements HttpContract {
   }
 
   #makeHeaders<T, P>(config: HttpConfigConnection<T, P>) {
+    this.#getStoraged();
     const content = config.type ?? this.#headers.get("Content-Type") ?? ContentType.ApplicationJson;
     const lang = this.#getConfig("lang", config) as string | undefined;
 
@@ -295,6 +288,18 @@ export class HttpInstance implements HttpContract {
     const option = config[key] ?? this.#config[key];
 
     return option;
+  }
+
+  #getStoraged() {
+    const token = this.#storage.getItem("sessionId") ?? "";
+
+    if (token instanceof Promise) {
+      token.then((value) => {
+        this.#headers.set("Authorization", `Bearer ${value ?? ""}`);
+      });
+    } else {
+      this.#headers.set("Authorization", `Bearer ${token}`);
+    }
   }
 
   public setAuth = (token: string) => {
