@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-import type { HttpConnectionError } from "../typing/classes/http";
+import type { HttpConnectionError } from "@typing/classes/http.typing";
 
 export class CustomError extends Error {
   date: Date;

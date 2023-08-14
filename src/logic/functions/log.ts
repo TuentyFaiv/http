@@ -1,4 +1,4 @@
-import { HttpLog } from "../typing/functions/log";
+import type { HttpLog } from "@typing/functions/log.typing";
 
 export function logger<T>(httpLog: HttpLog<T>) {
   Object.keys(httpLog).forEach((key) => {

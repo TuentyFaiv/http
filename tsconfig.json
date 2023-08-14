@@ -22,14 +22,14 @@
     "baseUrl": "./",
     "paths": {
       // Logic
-      "@classes": [
-        "src/logic/classes/index.ts"
+      "@classes/*": [
+        "src/logic/classes/*"
       ],
-      "@constants": [
-        "src/logic/constants/index.ts"
+      "@constants/*": [
+        "src/logic/constants/*"
       ],
-      "@functions": [
-        "src/logic/functions/index.ts"
+      "@functions/*": [
+        "src/logic/functions/*"
       ],
       "@typing/*": [
         "src/logic/typing/*"

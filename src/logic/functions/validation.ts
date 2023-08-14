@@ -1,4 +1,4 @@
-import { ContentType } from "../typing/enums/content";
+import { ContentType } from "@typing/enums/content";
 
 export function validateContentType(contentType: string) {
   if (contentType.includes(ContentType.ApplicationJson)) {

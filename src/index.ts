@@ -11,6 +11,6 @@ export type {
   HttpAlertConfig,
   HttpStorage,
   HttpStorageAsync,
-} from "./logic/typing/classes/http";
+} from "./logic/typing/classes/http.typing";
 
 export default instance;
