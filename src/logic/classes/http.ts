@@ -246,7 +246,8 @@ export class HttpInstance implements HttpContract {
 
     if (
       (responseJson?.error && !responseJson?.result)
-      || !responseJson?.detail?.success
+      || (responseJson?.detail && !responseJson.detail?.success)
+      || (responseJson?.payload && !responseJson?.success)
       || responseJson?.errors
       || !response.ok
     ) {
