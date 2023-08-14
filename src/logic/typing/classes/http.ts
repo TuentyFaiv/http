@@ -65,7 +65,7 @@ export type HttpConnectionReturn<T> = {
 export interface HttpConnectionError {
   statusText: string;
   message: string;
-  errors: {
+  errors: string[] | string | {
     description?: string;
   };
   status: number;

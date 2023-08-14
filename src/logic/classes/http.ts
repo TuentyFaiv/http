@@ -244,13 +244,13 @@ export class HttpInstance implements HttpContract {
 
     if (this.#getConfig("log", config)) logger({ response: contentType.json ? responseJson : response });
 
-    if ((responseJson?.error && !responseJson?.result) || responseJson?.errors || !response.ok) {
+    if ((responseJson?.error && !responseJson?.result) || !responseJson?.detail?.success || responseJson?.errors || !response.ok) {
       const statusText = `${response.status}: ${response.statusText || responseJson?.error}`;
       throw new ServiceError({
-        message: this.#getConfig("errorMessage", config) ?? responseJson?.error ?? responseJson.message,
+        message: this.#getConfig("errorMessage", config) ?? responseJson?.error ?? responseJson?.message ?? responseJson?.detail?.message,
         status: responseJson?.code ?? response.status,
         statusText: responseJson?.result ?? responseJson?.status ?? statusText,
-        errors: responseJson?.errors ?? {
+        errors: responseJson?.errors ?? responseJson?.detail?.errors ?? {
           description: response.statusText,
         },
       });
