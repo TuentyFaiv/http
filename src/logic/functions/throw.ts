@@ -1,6 +1,6 @@
-import { CustomError, ServiceError } from "@classes/errors";
+import { CustomError, ServiceError } from "../classes/errors";
 
-import type { HttpAlert } from "@typing/classes/http.typing";
+import type { HttpAlert } from "../typing/classes/http.typing";
 
 export function throwError(error: unknown, swal?: HttpAlert) {
   let message = "¡Oh no!";

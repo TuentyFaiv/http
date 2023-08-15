@@ -6,10 +6,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "./package.json": "./package.json",
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
+      "default": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
   },
@@ -17,11 +15,9 @@
   "license": "MIT",
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "README.md"
   ],
-  "directories": {
-    "dist": "dist"
-  },
   "scripts": {
     "clean": "rimraf ./dist",
     "visualizer": "pnpm clean && rollup --config rollup.config.visualizer.js --environment NODE_ENV:production",

@@ -1,5 +1,5 @@
-import type { ContentType } from "@typing/enums/content";
-import type { HttpMethod, HttpMethodLower } from "@typing/enums/methods";
+import type { ContentType } from "../enums/content";
+import type { HttpMethod, HttpMethodLower } from "../enums/methods";
 
 type SecureOptions = "secure" | "secureParams";
 type ExcludeFields = SecureOptions | "method" | "endpoint" | "body";

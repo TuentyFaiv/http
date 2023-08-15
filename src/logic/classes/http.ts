@@ -1,10 +1,10 @@
-import { Storage } from "@classes/storage";
-import { ServiceError } from "@classes/errors";
-import { validateContentType } from "@functions/validation";
-import { throwError } from "@functions/throw";
-import { logger } from "@functions/log";
-import { ContentType } from "@typing/enums/content";
-import { HttpMethod, HttpMethodLower } from "@typing/enums/methods";
+import { Storage } from "./storage";
+import { ServiceError } from "./errors";
+import { validateContentType } from "../functions/validation";
+import { throwError } from "../functions/throw";
+import { logger } from "../functions/log";
+import { ContentType } from "../typing/enums/content";
+import { HttpMethod, HttpMethodLower } from "../typing/enums/methods";
 
 import type {
   HttpContract,
@@ -16,7 +16,7 @@ import type {
   HttpConnectionReturn,
   HttpGlobalConfig,
   HttpMethods,
-} from "@typing/classes/http.typing";
+} from "../typing/classes/http.typing";
 
 type Http = HttpMethods & HttpInstance;
 

@@ -1,4 +1,4 @@
-import type { HttpStorage } from "@typing/classes/http.typing";
+import type { HttpStorage } from "../typing/classes/http.typing";
 
 export class Storage implements HttpStorage {
   #vault: Map<string, string>;
