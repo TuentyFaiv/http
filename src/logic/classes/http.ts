@@ -237,7 +237,7 @@ export class HttpInstance implements HttpContract {
     return request;
   }
 
-  async #makeResponse<T, R, P>(response: Response, config: HttpConfigConnection<T, P>): Promise<HttpConnectionReturn<R>> {
+  async #makeResponse<T, R, P = undefined>(response: Response, config: HttpConfigConnection<T, P>): Promise<HttpConnectionReturn<R>> {
     const responseType = response.headers.get("Content-Type") ?? ContentType.ApplicationJson;
     const contentType = validateContentType(responseType);
     const responseJson = contentType.json ? await response.json() : {};
@@ -280,6 +280,14 @@ export class HttpInstance implements HttpContract {
         success: !!responseJson?.result || responseJson?.success || Object.keys(payload).length > 0,
         message: responseJson?.error ?? responseJson?.message ?? "",
         payload,
+      };
+    }
+
+    if (contentType.text) {
+      return {
+        success: true,
+        message: "Success",
+        payload: await response.text() as R,
       };
     }
 

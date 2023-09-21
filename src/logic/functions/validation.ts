@@ -5,8 +5,19 @@ export function validateContentType(contentType: string) {
     return {
       json: true,
       file: false,
+      text: false,
+      xml: false,
     };
   }
+
+  const isText = contentType.includes(ContentType.TextPlain)
+    || contentType.includes(ContentType.TextHtml)
+    || contentType.includes(ContentType.TextCss)
+    || contentType.includes(ContentType.TextJavascript)
+    || contentType.includes(ContentType.TextCsv);
+
+  const isXml = contentType.includes(ContentType.ApplicationXml)
+    || contentType.includes(ContentType.TextXml);
 
   const isFile = contentType.includes(ContentType.ApplicationOctetStream)
     || contentType.includes(ContentType.ApplicationZip)
@@ -23,15 +34,37 @@ export function validateContentType(contentType: string) {
     || contentType.includes(ContentType.VideoWebm)
     || contentType.includes(ContentType.VideoOgg);
 
+  if (isXml) {
+    return {
+      json: false,
+      file: false,
+      text: false,
+      xml: true,
+    };
+  }
+
+  if (isText) {
+    return {
+      json: false,
+      file: false,
+      text: true,
+      xml: false,
+    };
+  }
+
   if (isFile || isImage || isAudio || isVideo) {
     return {
       json: false,
       file: true,
+      text: false,
+      xml: false,
     };
   }
 
   return {
     json: false,
     file: false,
+    text: false,
+    xml: false,
   };
 }
