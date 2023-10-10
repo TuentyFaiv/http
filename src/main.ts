@@ -111,7 +111,25 @@ StarWarsAPI.get("/people", { log: true }).then((response) => {
   console.log(response);
 });
 
-http.get("https://rickandmortyapi.com/api/a", { log: true }).then((response) => {
+
+http.global(async ({ headers, params }) => {
+  console.log({ headers, params });
+
+  headers.set("X-Test-Global", "global header");
+
+  return {
+    headers,
+    params
+  };
+})
+
+
+http.get("https://rickandmortyapi.com/api/a", {
+  log: true,
+  // headers: new Headers({
+  //   "X-Test": "test",
+  // })
+}).then((response) => {
   console.log(response);
 }).catch((error) => {
   if (error instanceof ServiceError) {
