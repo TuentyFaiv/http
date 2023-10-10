@@ -260,6 +260,15 @@ export class HttpInstance {
       };
     }
 
+    if (contentType.text) {
+      return {
+        success: true,
+        message: "Success",
+        payload: await response.text() as R,
+        response,
+      };
+    }
+
     throw new ServiceError({
       message: "response content type not supported",
       status: response.status,

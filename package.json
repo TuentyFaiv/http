@@ -1,7 +1,7 @@
 {
   "name": "@tuentyfaiv/http",
   "description": "Library for http requests based on fetch",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
