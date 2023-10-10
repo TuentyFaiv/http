@@ -1,20 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-console */
 import type { HttpLog } from "../typing/functions/log.typing";
 
-export function logger<T>(httpLog: HttpLog<T>) {
+export function logger(httpLog: HttpLog) {
   Object.keys(httpLog).forEach((key) => {
     const keyName = key as keyof typeof httpLog;
-    const value = httpLog[keyName];
+    const value: any = httpLog[keyName];
 
     if (keyName === "request") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const headers = Object.fromEntries(((value) as any).headers.entries());
-      // eslint-disable-next-line no-console
-      console.log(`%c${keyName}:`, "color: #00b894; font-weight: bold;", value);
-      // eslint-disable-next-line no-console
-      console.log("%cheaders:", "color: #00b894; font-weight: bold;", headers);
+      const headers = Object.fromEntries(value.headers.entries());
+
+      console.log("%cHEADERS:", "color: #00b894; font-weight: bold;", headers);
+      console.log("%cBODY:", "color: #00b894; font-weight: bold;", value.body);
+      console.log("%cMETHOD:", "color: #00b894; font-weight: bold;", value.method);
     } else {
-      // eslint-disable-next-line no-console
-      console.log(`%c${keyName === "url" ? "endpoint" : keyName}:`, "color: #00b894; font-weight: bold;", value);
+
+      const keyLog = keyName === "url" ? "endpoint" : `${keyName}`;
+      console.log(`%c${keyLog.toUpperCase()}:`, "color: #00b894; font-weight: bold;", value);
     }
   });
 }
