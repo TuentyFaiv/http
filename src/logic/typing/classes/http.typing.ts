@@ -14,6 +14,10 @@ export type HttpMethods = {
   get: <R, P = undefined>(endpoint: string, config?: HttpConfigGet<P>) => Promise<HttpConnectionReturn<R>>;
 };
 
+export interface HttpContract {
+  global<T>(config: HttpGlobalAction<T>): Promise<void>;
+}
+
 export type HttpGlobalConfig = Partial<Pick<HttpConfigConnection<unknown>, GlobalOptions>>;
 
 export interface HttpConfigInitial extends HttpGlobalConfig {
@@ -87,3 +91,10 @@ export interface HttpStorageAsync {
   setItem(key: string, value: string): Promise<void>;
   removeItem(key: string): Promise<void>;
 }
+
+export interface HttpGlobalActionConfig<T> {
+  headers: Headers;
+  params: Record<string, T>;
+}
+
+export type HttpGlobalAction<T> = (config: HttpGlobalActionConfig<T>) => Promise<HttpGlobalActionConfig<T>>;

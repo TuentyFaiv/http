@@ -7,6 +7,7 @@ import { ContentType } from "../typing/enums/content";
 import { HttpMethod, HttpMethodLower } from "../typing/enums/methods";
 
 import type {
+  HttpContract,
   HttpConfigInitial,
   HttpConfigConnection,
   HttpConfigRequest,
@@ -15,12 +16,13 @@ import type {
   HttpConnectionReturn,
   HttpGlobalConfig,
   HttpMethods,
+  HttpGlobalAction,
 } from "../typing/classes/http.typing";
 import type { HttpLog } from "../typing/functions/log.typing";
 
 type Http = HttpMethods & HttpInstance;
 
-export class HttpInstance {
+export class HttpInstance implements HttpContract {
   #api: string;
   #headers: Headers;
   #params: Required<HttpConfigInitial>["params"];
@@ -285,5 +287,15 @@ export class HttpInstance {
 
   #show<T, P>(config: HttpConfigConnection<T, P>, request: HttpLog) {
     if (this.#getConfig("log", config)) logger(request);
+  }
+
+  public global = async <T = string>(config: HttpGlobalAction<T>): Promise<void> => {
+    const { headers, params } = await config({
+      headers: this.#headers,
+      params: this.#params as Record<string, T>,
+    });
+
+    this.#headers = headers;
+    this.#params = params;
   }
 }
