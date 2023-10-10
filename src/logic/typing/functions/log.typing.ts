@@ -1,7 +1,8 @@
 import type { HttpConfigRequest } from "../classes/http.typing";
 
-export interface HttpLog<T> {
+export interface HttpLog {
   url?: string;
-  request?: HttpConfigRequest<T>;
+  request?: HttpConfigRequest<string | undefined>;
   response?: unknown;
+  [key: string]: unknown | undefined;
 }

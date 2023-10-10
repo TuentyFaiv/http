@@ -6,23 +6,28 @@ export function throwError(error: unknown, swal?: HttpAlert) {
   let message = "¡Oh no!";
   let name = "Error!";
   let title = "Ops!";
+  let icon = "error";
+  let time = 4000;
   if (error instanceof Error) {
     message = error.message;
     name = error.name;
   }
   if (error instanceof ServiceError) {
-    message = error.view().message;
+    const errorData = error.view();
+    message = errorData.message;
     name = error.name;
-    title = error.title;
+    title = errorData.title;
+    icon = errorData.icon;
+    time = errorData.time;
   }
 
   if (!name.includes("AbortError")) {
     swal?.({
       title,
       text: message,
-      icon: "error",
-      className: "error-alert",
-      timer: 4000,
+      icon,
+      className: "http__error-alert",
+      timer: time,
     });
   }
 

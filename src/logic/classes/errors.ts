@@ -20,13 +20,16 @@ export class CustomError extends Error {
 }
 
 export class ServiceError extends Error {
-  title: string;
   date: Date;
-  #data: HttpConnectionError;
+  #data: Required<HttpConnectionError>;
 
   constructor(
-    data: HttpConnectionError,
-    title = "!Connection Error¡",
+    {
+      title = "!Connection Error¡",
+      icon = "error",
+      time = 4000,
+      ...data
+    }: HttpConnectionError,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...params: any[]
   ) {
@@ -40,9 +43,8 @@ export class ServiceError extends Error {
 
     this.name = "ServiceError";
     this.message = data.message;
-    this.title = title;
     this.date = new Date();
-    this.#data = data;
+    this.#data = { ...data, title, icon, time };
   }
 
   view = () => (this.#data);

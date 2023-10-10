@@ -1,13 +1,12 @@
-import { Storage } from "./storage";
 import { ServiceError } from "./errors";
 import { validateContentType } from "../functions/validation";
 import { throwError } from "../functions/throw";
 import { logger } from "../functions/log";
+import { parseBody } from "../functions/parse";
 import { ContentType } from "../typing/enums/content";
 import { HttpMethod, HttpMethodLower } from "../typing/enums/methods";
 
 import type {
-  HttpContract,
   HttpConfigInitial,
   HttpConfigConnection,
   HttpConfigRequest,
@@ -17,27 +16,25 @@ import type {
   HttpGlobalConfig,
   HttpMethods,
 } from "../typing/classes/http.typing";
+import type { HttpLog } from "../typing/functions/log.typing";
 
 type Http = HttpMethods & HttpInstance;
 
-export class HttpInstance implements HttpContract {
+export class HttpInstance {
   #api: string;
   #headers: Headers;
   #params: Required<HttpConfigInitial>["params"];
   #swal: HttpConfigInitial["swal"];
-  #storage: Required<HttpConfigInitial>["storage"];
   #config: HttpGlobalConfig;
 
   static instance: Record<string, Http> = {};
 
   private constructor(api: string, config?: HttpConfigInitial) {
     this.#swal = config?.swal;
-    this.#storage = config?.storage ?? new Storage();
     this.#config = {
       errorMessage: config?.errorMessage,
       secure: config?.secure,
       secureParams: config?.secureParams,
-      lang: config?.lang,
       log: config?.log,
     };
     this.#api = api;
@@ -47,8 +44,6 @@ export class HttpInstance implements HttpContract {
       ...config?.headers,
       "Content-Type": ContentType.ApplicationJson,
     });
-
-    this.#getStoraged();
 
     Object.freeze(this);
   }
@@ -65,27 +60,23 @@ export class HttpInstance implements HttpContract {
               body: T,
               configRequest: HttpConfigMethods<T, P> = {},
             ): Promise<HttpConnectionReturn<R>> => {
-              const { secure = true, secureParams = true, ...configConn } = configRequest;
-
               const {
-                secure: secureGet = true,
-                secureParams: secureParamsGet = true,
-                ...configGet
-              } = (body as unknown as HttpConfigGet<P>) ?? {};
+                secure = true,
+                secureParams = true,
+                headers = new Headers(),
+                ...options
+              } = method === HttpMethodLower.get ? (body as HttpConfigGet<P> ?? {}) : configRequest;
 
               const connectionConfig: HttpConfigConnection<T, P> = {
                 method: method.toUpperCase() as HttpMethod,
                 endpoint,
-                ...(method === HttpMethodLower.get ? {
-                  secure: secureGet,
-                  secureParams: secureParamsGet,
-                  ...configGet,
-                } : {
-                  secure,
-                  secureParams,
+                secure,
+                secureParams,
+                headers,
+                ...options,
+                ...(method !== HttpMethodLower.get ? {
                   body,
-                  ...configConn,
-                }),
+                } : {}),
               };
 
               const response = await target.#connection<T, R, P>(connectionConfig);
@@ -106,12 +97,9 @@ export class HttpInstance implements HttpContract {
 
   async #connection<T, R, P>(config: HttpConfigConnection<T, P>): Promise<HttpConnectionReturn<R>> {
     try {
-      this.#makeHeaders<T, P>(config);
-
-      const request = this.#makeRequest(config);
+      const request = this.#makeRequest(this.#makeHeaders(config));
 
       const petition = await fetch(request.url, request.config);
-
       const response = await this.#makeResponse<T, R, P>(petition, config);
 
       return response;
@@ -120,24 +108,35 @@ export class HttpInstance implements HttpContract {
     }
   }
 
-  #makeHeaders<T, P>(config: HttpConfigConnection<T, P>) {
-    this.#getStoraged();
-    const content = config.type ?? this.#headers.get("Content-Type") ?? ContentType.ApplicationJson;
-    const lang = this.#getConfig("lang", config) as string | undefined;
+  #makeHeaders<T, P>(config: HttpConfigConnection<T, P>): HttpConfigConnection<T, P> {
+    const { headers, type } = config;
+    const requestHeaders = new Headers(headers);
+    const preConfigHeaders = new Headers(this.#headers);
 
-    if (!lang) {
-      this.#headers.delete("Accept-Language");
-    } else if (lang) {
-      this.#headers.set("Accept-Language", lang);
+    const content = type ?? this.#headers.get("Content-Type") ?? ContentType.ApplicationJson;
+    if (!requestHeaders.has("Content-Type")) {
+      requestHeaders.set("Content-Type", content);
     }
 
-    if (config.method !== HttpMethod.GET) {
-      this.#headers.set("Content-Type", content);
-    } else {
-      this.#headers.delete("Content-Type");
+    preConfigHeaders.forEach((value, key) => {
+      if (!requestHeaders.has(key)) {
+        requestHeaders.set(key, value);
+      }
+    });
+
+    if (config.method === HttpMethod.GET) {
+      requestHeaders.delete("Content-Type");
     }
 
-    if (!this.#getConfig("secure", config)) this.#headers.delete("Authorization");
+    if (!this.#getConfig("secure", config)) {
+      requestHeaders.delete("Authorization");
+    }
+
+    return {
+      ...config,
+      type,
+      headers: requestHeaders,
+    };
   }
 
   #makeParams<P>(config: HttpConfigConnection<unknown, P>) {
@@ -167,74 +166,41 @@ export class HttpInstance implements HttpContract {
     return "";
   }
 
-  #makeBody<T>(body: T | FormData) {
-    switch (this.#headers.get("Content-Type")) {
-      case ContentType.ApplicationFormData:
-        this.#headers.delete("Content-Type");
-        if (body instanceof FormData) return body;
-
-        const parsedBody = new FormData();
-
-        const addItem = (key: string, value: unknown, index?: number) => {
-          const name = index ? `${key}[${index}]` : key;
-          if (value instanceof File) {
-            parsedBody.append(name, value, value.name);
-          }
-
-          if (value instanceof Blob || typeof value === "string") {
-            parsedBody.append(name, value);
-          }
-
-          if (typeof value === "number" || typeof value === "boolean") {
-            parsedBody.append(name, value.toString());
-          }
-
-          if (typeof value === "object") {
-            parsedBody.append(name, JSON.stringify(value));
-          }
-        };
-
-        Object.entries(body as Record<string, unknown>).forEach(([key, value]) => {
-          if (Array.isArray(value)) {
-            (value as unknown[]).forEach((item, index) => {
-              addItem(key, item, index);
-            });
-          } else {
-            addItem(key, value);
-          }
-        });
-        return parsedBody;
-      default:
-        if (body instanceof FormData) {
-          const parsedJsonBody: Record<string, unknown> = {};
-
-          body.forEach((value, key) => {
-            parsedJsonBody[key] = value;
-          });
-          return JSON.stringify(parsedJsonBody);
-        }
-        return JSON.stringify(body);
-    }
-  }
-
   #makeRequest<T, P>(config: HttpConfigConnection<T, P>) {
-
-    const body = this.#makeBody(config.body);
+    const {
+      body: B,
+      params: PA,
+      type: C,
+      log: L,
+      arrayBuffer: AB,
+      errorMessage: EM,
+      headers: H,
+      secure: S,
+      secureParams: SP,
+      endpoint,
+      method,
+      signal,
+      ...options
+    } = config;
+    const { body, headers } = parseBody(config);
     const params = this.#makeParams<P>(config);
 
-    const requestConfig: HttpConfigRequest<string> = {
-      method: config.method,
-      headers: this.#headers,
-      ...(config.method === HttpMethod.GET ? {} : { body }),
-      ...(config.signal ? { signal: config.signal } : {}),
+    const request: HttpConfigRequest<string> = {
+      method,
+      headers,
+      ...options,
+      ...(method === HttpMethod.GET ? {} : { body }),
+      ...(signal ? { signal } : {}),
     };
-    const url = `${this.#api === "no-api" ? "" : this.#api}${config.endpoint}${params}`;
+    const url = `${this.#api === "no-api" ? "" : this.#api}${endpoint}${params}`;
 
-    const request = { url, config: requestConfig };
+    this.#show(config, {
+      url,
+      request,
+      params,
+    });
 
-    if (this.#getConfig("log", config)) logger(request);
-
-    return request;
+    return { url, config: request };
   }
 
   async #makeResponse<T, R, P>(response: Response, config: HttpConfigConnection<T, P>): Promise<HttpConnectionReturn<R>> {
@@ -242,7 +208,7 @@ export class HttpInstance implements HttpContract {
     const contentType = validateContentType(responseType);
     const responseJson = contentType.json ? await response.json() : {};
 
-    if (this.#getConfig("log", config)) logger({ response: contentType.json ? responseJson : response });
+    this.#show(config, { response: contentType.json ? responseJson : response });
 
     if (
       (responseJson?.error && !responseJson?.result)
@@ -260,7 +226,7 @@ export class HttpInstance implements HttpContract {
         status: responseJson?.code ?? response.status,
         statusText: responseJson?.result ?? responseJson?.status ?? statusText,
         errors: responseJson?.errors ?? responseJson?.detail?.errors ?? {
-          description: response.statusText,
+          description: responseJson?.error ?? response.statusText,
         },
       });
     }
@@ -269,7 +235,8 @@ export class HttpInstance implements HttpContract {
       return {
         success: true,
         message: "Success to download",
-        payload: await response.blob() as R,
+        payload: await (config.arrayBuffer ? response.arrayBuffer() : response.blob()) as R,
+        response,
       };
     }
 
@@ -280,6 +247,16 @@ export class HttpInstance implements HttpContract {
         success: !!responseJson?.result || responseJson?.success || Object.keys(payload).length > 0,
         message: responseJson?.error ?? responseJson?.message ?? "",
         payload,
+        response,
+      };
+    }
+
+    if (contentType.text) {
+      return {
+        success: true,
+        message: response.statusText,
+        payload: await response.text() as R,
+        response,
       };
     }
 
@@ -294,29 +271,10 @@ export class HttpInstance implements HttpContract {
   }
 
   #getConfig(key: keyof HttpGlobalConfig, config: Partial<HttpConfigConnection<unknown, unknown>>) {
-    const option = config[key] ?? this.#config[key];
-
-    return option;
+    return config[key] ?? this.#config[key];
   }
 
-  #getStoraged() {
-    const token = this.#storage.getItem("sessionId") ?? "";
-
-    if (token instanceof Promise) {
-      token.then((value) => {
-        this.#headers.set("Authorization", `Bearer ${value ?? ""}`);
-      });
-    } else {
-      this.#headers.set("Authorization", `Bearer ${token}`);
-    }
+  #show<T, P>(config: HttpConfigConnection<T, P>, request: HttpLog) {
+    if (this.#getConfig("log", config)) logger(request);
   }
-
-  public setAuth = (token: string) => {
-    this.#headers.set("Authorization", `Bearer ${token}`);
-    this.#storage.setItem("sessionId", token);
-  };
-
-  public setLang = (lang: string) => {
-    this.#headers.set("Accept-Language", lang);
-  };
 }
