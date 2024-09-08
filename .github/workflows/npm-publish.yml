@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         uses: pnpm/action-setup@v2
         with:
-          version: latest
+          version: 8.x
           run_install: |
             - args: [--no-frozen-lockfile, --strict-peer-dependencies]
 
