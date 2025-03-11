@@ -1,4 +1,4 @@
-import type { HttpConfigRequest } from "../classes/http.typing";
+import type { HttpConfigRequest } from "../classes/http.typing.js";
 
 export interface HttpLog {
   url?: string;

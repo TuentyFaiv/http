@@ -1,7 +1,7 @@
 {
   "name": "@tuentyfaiv/http",
   "description": "Library for http requests based on fetch",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -25,26 +25,23 @@
     "dev": "pnpm clean && rollup -c -w",
     "prepublishOnly": "pnpm build",
     "preview": "vite dev",
-    "lint": "eslint ./src/ --fix"
+    "lint:help": "oxlint -c ./oxlintrc.json --help",
+    "lint:rules": "oxlint -c ./oxlintrc.json --rules",
+    "lint:fix": "oxlint -c ./oxlintrc.json --fix",
+    "lint": "oxlint -c ./oxlintrc.json"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^25.0.5",
-    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.5",
-    "@typescript-eslint/eslint-plugin": "^6.7.5",
-    "@typescript-eslint/parser": "^6.7.5",
-    "eslint": "^8.51.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-airbnb-typescript": "^17.1.0",
-    "eslint-import-resolver-typescript": "^3.6.1",
-    "eslint-plugin-import": "^2.28.1",
-    "rimraf": "^5.0.5",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "oxlint": "^0.15.14",
+    "rimraf": "^6.0.1",
     "rollup": "^4.0.2",
     "rollup-plugin-visualizer": "^5.9.2",
     "tslib": "^2.6.2",
     "typescript": "^5.2.2",
-    "vite": "^4.4.11"
+    "vite": "^6.2.1"
   },
   "repository": {
     "type": "git",

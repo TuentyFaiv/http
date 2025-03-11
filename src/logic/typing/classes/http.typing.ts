@@ -1,5 +1,5 @@
-import type { ContentType } from "../enums/content";
-import type { HttpMethod, HttpMethodLower } from "../enums/methods";
+import type { ContentType } from "../enums/content.js";
+import type { HttpMethod, HttpMethodLower } from "../enums/methods.js";
 
 type ExcludeFields = "method" | "endpoint" | "body";
 type GlobalOptions = "secure" | "secureParams" | "errorMessage" | "log";
@@ -45,6 +45,7 @@ export interface HttpConfigConnection<T, P = undefined> extends HttpConfigReques
   endpoint: string;
   errorMessage?: string;
   arrayBuffer?: boolean;
+  thrower?: HttpGlobalActionConfig<P>["thrower"];
   log?: boolean;
 }
 
@@ -95,6 +96,7 @@ export interface HttpStorageAsync {
 export interface HttpGlobalActionConfig<T> {
   headers: Headers;
   params: Record<string, T>;
+  thrower(response: { json: Record<string, unknown>; response: Response; }): void;
 }
 
 export type HttpGlobalAction<T> = (config: HttpGlobalActionConfig<T>) => Promise<HttpGlobalActionConfig<T>>;

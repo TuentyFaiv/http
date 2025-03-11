@@ -1,16 +1,13 @@
 /* eslint-disable max-classes-per-file */
-import type { HttpConnectionError } from "../typing/classes/http.typing";
+import type { HttpConnectionError } from "../typing/classes/http.typing.js";
 
 export class CustomError extends Error {
   date: Date;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(name = "Error", ...params: any[]) {
     super(...params);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((Error as any).captureStackTrace) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (Error as any).captureStackTrace(this, CustomError);
     }
 
@@ -30,14 +27,11 @@ export class ServiceError extends Error {
       time = 4000,
       ...data
     }: HttpConnectionError,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...params: any[]
   ) {
     super(...params);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((Error as any).captureStackTrace) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (Error as any).captureStackTrace(this, ServiceError);
     }
 

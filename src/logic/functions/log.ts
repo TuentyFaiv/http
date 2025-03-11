@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
-import type { HttpLog } from "../typing/functions/log.typing";
+import type { HttpLog } from "../typing/functions/log.typing.js";
 
 export function logger(httpLog: HttpLog) {
   Object.keys(httpLog).forEach((key) => {

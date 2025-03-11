@@ -1,10 +1,10 @@
-import { ServiceError } from "./errors";
-import { validateContentType } from "../functions/validation";
-import { throwError } from "../functions/throw";
-import { logger } from "../functions/log";
-import { parseBody } from "../functions/parse";
-import { ContentType } from "../typing/enums/content";
-import { HttpMethod, HttpMethodLower } from "../typing/enums/methods";
+import { ServiceError } from "./errors.js";
+import { validateContentType } from "../functions/validation.js";
+import { throwError } from "../functions/throw.js";
+import { logger } from "../functions/log.js";
+import { parseBody } from "../functions/parse.js";
+import { ContentType } from "../typing/enums/content.js";
+import { HttpMethod, HttpMethodLower } from "../typing/enums/methods.js";
 
 import type {
   HttpContract,
@@ -17,8 +17,8 @@ import type {
   HttpGlobalConfig,
   HttpMethods,
   HttpGlobalAction,
-} from "../typing/classes/http.typing";
-import type { HttpLog } from "../typing/functions/log.typing";
+} from "../typing/classes/http.typing.js";
+import type { HttpLog } from "../typing/functions/log.typing.js";
 
 type Http = HttpMethods & HttpInstance;
 
@@ -28,6 +28,26 @@ export class HttpInstance implements HttpContract {
   #params: Required<HttpConfigInitial>["params"];
   #swal: HttpConfigInitial["swal"];
   #config: HttpGlobalConfig;
+  #thrower: (config: { json: Record<string, unknown>; response: Response }) => void = ({ json, response }) => {
+    if ((json?.error && !json?.result)
+      || (json?.detail && !(json.detail as { success?: boolean })?.success)
+      || (json?.payload && !json?.success)
+      || json?.errors
+      || !response.ok) {
+      const statusText = `${response.status}: ${response.statusText || json?.error}`;
+      throw new ServiceError({
+        message: (this.#getConfig("errorMessage", this.#config)
+          ?? json?.error
+          ?? json?.message
+          ?? (json?.detail as { message: string; })?.message) as string,
+        status: json?.code as number ?? response.status,
+        statusText: (json?.result ?? json?.status ?? statusText) as string,
+        errors: json?.errors ?? (json?.detail as { errors: string[]; })?.errors ?? {
+          description: json?.error ?? response.statusText,
+        },
+      });
+    }
+  };
 
   static instance: Record<string, Http> = {};
 
@@ -170,15 +190,26 @@ export class HttpInstance implements HttpContract {
 
   #makeRequest<T, P>(config: HttpConfigConnection<T, P>) {
     const {
+      // eslint-disable-next-line no-unused-vars
       body: B,
+      // eslint-disable-next-line no-unused-vars
       params: PA,
+      // eslint-disable-next-line no-unused-vars
       type: C,
+      // eslint-disable-next-line no-unused-vars
       log: L,
+      // eslint-disable-next-line no-unused-vars
       arrayBuffer: AB,
+      // eslint-disable-next-line no-unused-vars
       errorMessage: EM,
+      // eslint-disable-next-line no-unused-vars
       headers: H,
+      // eslint-disable-next-line no-unused-vars
       secure: S,
+      // eslint-disable-next-line no-unused-vars
       secureParams: SP,
+      // eslint-disable-next-line no-unused-vars
+      thrower: TR,
       endpoint,
       method,
       signal,
@@ -208,30 +239,12 @@ export class HttpInstance implements HttpContract {
   async #makeResponse<T, R, P>(response: Response, config: HttpConfigConnection<T, P>): Promise<HttpConnectionReturn<R>> {
     const responseType = response.headers.get("Content-Type") ?? ContentType.ApplicationJson;
     const contentType = validateContentType(responseType);
-    const responseJson = contentType.json ? await response.json() : {};
+    const responseJson = contentType.json ? await response.json() : {};    
+    const thrower = config.thrower ?? this.#thrower;
 
     this.#show(config, { response: contentType.json ? responseJson : response });
 
-    if (
-      (responseJson?.error && !responseJson?.result)
-      || (responseJson?.detail && !responseJson.detail?.success)
-      || (responseJson?.payload && !responseJson?.success)
-      || responseJson?.errors
-      || !response.ok
-    ) {
-      const statusText = `${response.status}: ${response.statusText || responseJson?.error}`;
-      throw new ServiceError({
-        message: this.#getConfig("errorMessage", config)
-          ?? responseJson?.error
-          ?? responseJson?.message
-          ?? responseJson?.detail?.message,
-        status: responseJson?.code ?? response.status,
-        statusText: responseJson?.result ?? responseJson?.status ?? statusText,
-        errors: responseJson?.errors ?? responseJson?.detail?.errors ?? {
-          description: responseJson?.error ?? response.statusText,
-        },
-      });
-    }
+    thrower({ json: responseJson, response });
 
     if (contentType.file) {
       return {
@@ -290,12 +303,14 @@ export class HttpInstance implements HttpContract {
   }
 
   public global = async <T = string>(config: HttpGlobalAction<T>): Promise<void> => {
-    const { headers, params } = await config({
+    const { headers, params, thrower } = await config({
       headers: this.#headers,
       params: this.#params as Record<string, T>,
+      thrower: this.#thrower,
     });
 
     this.#headers = headers;
     this.#params = params;
-  }
+    this.#thrower = thrower;
+  };
 }

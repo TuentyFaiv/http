@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "plugins": [
+    "unicorn",
+    "typescript",
+    "oxc",
+    "import",
+    "eslint",
+    "oxc-security"
+  ],
+  "rules": {
+    "import/no-cycle": "error",
+    "eslint/no-case-declarations": "error",
+    "eslint/no-plusplus": "error",
+    "eslint/no-unused-vars": "off"
+  }
+}
