@@ -1,6 +1,6 @@
-import { ContentType } from "../typing/enums/content";
+import { ContentType } from "../typing/enums/content.js";
 
-import type { HttpConfigConnection } from "../typing/classes/http.typing";
+import type { HttpConfigConnection } from "../typing/classes/http.typing.js";
 
 export function parseBody<T, P>(config: HttpConfigConnection<T, P>): Pick<HttpConfigConnection<string, P>, "body" | "headers"> {
   const { body, headers } = config;

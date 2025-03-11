@@ -1,9 +1,9 @@
-import { instance } from "./logic/functions/instance";
+import { instance } from "./logic/functions/instance.js";
 
-export { HttpInstance as Http } from "./logic/classes/http";
-export { ServiceError, CustomError } from "./logic/classes/errors";
-export { throwError } from "./logic/functions/throw";
-export { ContentType } from "./logic/typing/enums/content";
+export { HttpInstance as Http } from "./logic/classes/http.js";
+export { ServiceError, CustomError } from "./logic/classes/errors.js";
+export { throwError } from "./logic/functions/throw.js";
+export { ContentType } from "./logic/typing/enums/content.js";
 
 export type {
   HttpConfigInitial,
@@ -11,6 +11,6 @@ export type {
   HttpAlertConfig,
   HttpStorage,
   HttpStorageAsync,
-} from "./logic/typing/classes/http.typing";
+} from "./logic/typing/classes/http.typing.js";
 
 export default instance;

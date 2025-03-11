@@ -1,4 +1,4 @@
-import http, { ContentType, Http, ServiceError } from "./index";
+import http, { ContentType, Http, ServiceError } from "./index.js";
 
 // UI
 const body = document.querySelector("body");
@@ -99,8 +99,37 @@ const RickAndMortyAPI = Http.create("https://rickandmortyapi.com/api", { log: tr
 
 const StarWarsAPI = Http.create("https://swapi.dev/api");
 
+// RickAndMortyAPI.
+
+RickAndMortyAPI.global(async (config) => {
+  console.log({ config });
+
+  return {
+    ...config,
+    thrower: ({ json }) => {
+      console.log({
+        thrower: "(json?.info as { pages: number; }).pages === 42",
+        json,
+      });
+
+      if ((json?.info as { pages: number; })?.pages === 42) {
+        throw new ServiceError({
+          status: 404,
+          statusText: "Not Found",
+          message: "The page you are looking for does not exist",
+          errors: "The page you are looking for does not exist",
+        });
+      }
+    },
+  };
+});
+
 RickAndMortyAPI.get("/character").then((response) => {
   console.log(response);
+}).catch((error) => {
+  if (error instanceof ServiceError) {
+    console.error(error.view());
+  }
 });
 
 RickAndMortyAPI.get("/location", { log: false }).then((response) => {
@@ -111,18 +140,17 @@ StarWarsAPI.get("/people", { log: true }).then((response) => {
   console.log(response);
 });
 
-
-http.global(async ({ headers, params }) => {
+http.global(async ({ headers, params, ...config }) => {
   console.log({ headers, params });
 
   headers.set("X-Test-Global", "global header");
 
   return {
+    ...config,
     headers,
-    params
+    params,
   };
-})
-
+});
 
 http.get("https://rickandmortyapi.com/api/a", {
   log: true,
