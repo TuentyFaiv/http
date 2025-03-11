@@ -55,5 +55,6 @@
   "bugs": {
     "url": "https://github.com/TuentyFaiv/http/issues"
   },
-  "homepage": "https://github.com/TuentyFaiv/http#readme"
+  "homepage": "https://github.com/TuentyFaiv/http#readme",
+  "packageManager": "pnpm@10.4.1"
 }
