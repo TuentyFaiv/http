@@ -1,5 +1,5 @@
-import type { ContentType } from "../enums/content.js";
-import type { HttpMethod, HttpMethodLower } from "../enums/methods.js";
+import type { ContentTypes } from "../enums/content.js";
+import type { HttpMethods as HttpMethod, HttpMethodsLower as HttpMethodLower  } from "../enums/methods.js";
 
 type ExcludeFields = "method" | "endpoint" | "body";
 type GlobalOptions = "secure" | "secureParams" | "errorMessage" | "log";
@@ -39,13 +39,14 @@ export interface HttpConfigRequest<T> extends Omit<RequestInit, "body"> {
 
 export interface HttpConfigConnection<T, P = undefined> extends HttpConfigRequest<T> {
   params?: P;
-  type?: ContentType;
+  type?: ContentTypes;
   secure: boolean;
   secureParams: boolean;
   endpoint: string;
   errorMessage?: string;
   arrayBuffer?: boolean;
   thrower?: HttpGlobalActionConfig<P>["thrower"];
+  clone?: boolean;
   log?: boolean;
 }
 

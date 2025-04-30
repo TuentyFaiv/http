@@ -1,10 +1,11 @@
 import { ContentType } from "../typing/enums/content.js";
 
+import type { ContentTypes } from "../typing/enums/content.js";
 import type { HttpConfigConnection } from "../typing/classes/http.typing.js";
 
 export function parseBody<T, P>(config: HttpConfigConnection<T, P>): Pick<HttpConfigConnection<string, P>, "body" | "headers"> {
   const { body, headers } = config;
-  const content: ContentType = headers.get("Content-Type") as ContentType ?? ContentType.ApplicationJson;
+  const content: ContentTypes = headers.get("Content-Type") as ContentTypes ?? ContentType.ApplicationJson;
 
   if (content === ContentType.ApplicationFormData) {
     headers.delete("Content-Type");

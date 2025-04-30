@@ -6,6 +6,8 @@ import { parseBody } from "../functions/parse.js";
 import { ContentType } from "../typing/enums/content.js";
 import { HttpMethod, HttpMethodLower } from "../typing/enums/methods.js";
 
+import type { HttpMethods as HTTPMethods, HttpMethodsLower } from "../typing/enums/methods.js";
+
 import type {
   HttpContract,
   HttpConfigInitial,
@@ -76,7 +78,7 @@ export class HttpInstance implements HttpContract {
 
       const handler: ProxyHandler<HttpInstance> = {
         get(target, method: string) {
-          if (Object.values(HttpMethodLower).includes(method as HttpMethodLower)) {
+          if (Object.values(HttpMethodLower).includes(method as HttpMethodsLower)) {
             return async <T, R, P = undefined>(
               endpoint: string,
               body: T,
@@ -90,7 +92,7 @@ export class HttpInstance implements HttpContract {
               } = method === HttpMethodLower.get ? (body as HttpConfigGet<P> ?? {}) : configRequest;
 
               const connectionConfig: HttpConfigConnection<T, P> = {
-                method: method.toUpperCase() as HttpMethod,
+                method: method.toUpperCase() as HTTPMethods,
                 endpoint,
                 secure,
                 secureParams,
@@ -210,6 +212,8 @@ export class HttpInstance implements HttpContract {
       secureParams: SP,
       // eslint-disable-next-line no-unused-vars
       thrower: TR,
+      // eslint-disable-next-line no-unused-vars
+      clone: CL,
       endpoint,
       method,
       signal,
@@ -236,22 +240,37 @@ export class HttpInstance implements HttpContract {
     return { url, config: request };
   }
 
+  #cloneResponse({ clone, response }: { clone?: boolean; response: Response }) {
+    if (clone) {
+      return {
+        cloned: response.clone(),
+        real: response,
+      };
+    }
+
+    return {
+      cloned: response,
+      real: response,
+    };
+  }
+
   async #makeResponse<T, R, P>(response: Response, config: HttpConfigConnection<T, P>): Promise<HttpConnectionReturn<R>> {
     const responseType = response.headers.get("Content-Type") ?? ContentType.ApplicationJson;
     const contentType = validateContentType(responseType);
-    const responseJson = contentType.json ? await response.json() : {};    
+    const { real, cloned } = this.#cloneResponse({ clone: config.clone, response });
+    const responseJson = contentType.json ? await real.json() : {};
     const thrower = config.thrower ?? this.#thrower;
 
-    this.#show(config, { response: contentType.json ? responseJson : response });
+    this.#show(config, { response: contentType.json ? responseJson : real });
 
-    thrower({ json: responseJson, response });
+    thrower({ json: responseJson, response: real });
 
     if (contentType.file) {
       return {
         success: true,
         message: "Success to download",
-        payload: await (config.arrayBuffer ? response.arrayBuffer() : response.blob()) as R,
-        response,
+        payload: await (config.arrayBuffer ? real.arrayBuffer() : real.blob()) as R,
+        response: cloned,
       };
     }
 
@@ -262,7 +281,7 @@ export class HttpInstance implements HttpContract {
         success: !!responseJson?.result || responseJson?.success || Object.keys(payload).length > 0,
         message: responseJson?.error ?? responseJson?.message ?? "",
         payload,
-        response,
+        response: cloned,
       };
     }
 
@@ -270,26 +289,17 @@ export class HttpInstance implements HttpContract {
       return {
         success: true,
         message: response.statusText,
-        payload: await response.text() as R,
-        response,
-      };
-    }
-
-    if (contentType.text) {
-      return {
-        success: true,
-        message: "Success",
-        payload: await response.text() as R,
-        response,
+        payload: await real.text() as R,
+        response: cloned,
       };
     }
 
     throw new ServiceError({
       message: "response content type not supported",
-      status: response.status,
-      statusText: `${response.status}: ${response.statusText}`,
+      status: real.status,
+      statusText: `${real.status}: ${real.statusText}`,
       errors: {
-        description: response.statusText,
+        description: real.statusText,
       },
     });
   }

@@ -5,6 +5,7 @@ export { ServiceError, CustomError } from "./logic/classes/errors.js";
 export { throwError } from "./logic/functions/throw.js";
 export { ContentType } from "./logic/typing/enums/content.js";
 
+export type { ContentTypes } from "./logic/typing/enums/content.js";
 export type {
   HttpConfigInitial,
   HttpAlert,
