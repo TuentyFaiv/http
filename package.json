@@ -1,60 +1,73 @@
 {
-  "name": "@tuentyfaiv/http",
-  "description": "Library for http requests based on fetch",
-  "version": "0.1.15",
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
-  "author": "Tonalli López <contact@tuentyfaiv.com>",
-  "license": "MIT",
-  "files": [
-    "dist",
-    "LICENSE",
-    "README.md"
-  ],
-  "scripts": {
-    "clean": "rimraf ./dist",
-    "visualizer": "pnpm clean && rollup --config rollup.config.visualizer.js --environment NODE_ENV:production",
-    "build": "pnpm clean && rollup -c --environment NODE_ENV:production",
-    "dev": "pnpm clean && rollup -c -w",
-    "prepublishOnly": "pnpm build",
-    "preview": "vite dev",
-    "lint:help": "oxlint -c ./oxlintrc.json --help",
-    "lint:rules": "oxlint -c ./oxlintrc.json --rules",
-    "lint:fix": "oxlint -c ./oxlintrc.json --fix",
-    "lint": "oxlint -c ./oxlintrc.json"
-  },
-  "devDependencies": {
-    "@rollup/plugin-commonjs": "^28.0.3",
-    "@rollup/plugin-node-resolve": "^16.0.0",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^12.1.2",
-    "oxlint": "^0.15.14",
-    "rimraf": "^6.0.1",
-    "rollup": "^4.0.2",
-    "rollup-plugin-visualizer": "^5.9.2",
-    "tslib": "^2.6.2",
-    "typescript": "^5.2.2",
-    "vite": "^6.2.1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/TuentyFaiv/http.git"
-  },
-  "keywords": [
-    "Http",
-    "Library",
-    "TypeScript"
-  ],
-  "bugs": {
-    "url": "https://github.com/TuentyFaiv/http/issues"
-  },
-  "homepage": "https://github.com/TuentyFaiv/http#readme",
-  "packageManager": "pnpm@10.4.1"
+	"name": "@tuentyfaiv/http",
+	"version": "0.1.15",
+	"description": "Library for http requests based on fetch",
+	"keywords": [
+		"Http",
+		"Library",
+		"TypeScript"
+	],
+	"homepage": "https://github.com/TuentyFaiv/http#readme",
+	"bugs": {
+		"url": "https://github.com/TuentyFaiv/http/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/TuentyFaiv/http.git"
+	},
+	"license": "MIT",
+	"author": "Tonalli López <contact@tuentyfaiv.com>",
+	"sideEffects": false,
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist",
+		"LICENSE",
+		"README.md"
+	],
+	"workspaces": [
+		"docs"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"check": "biome check",
+		"check:fix": "biome check --write",
+		"clean": "rimraf ./dist",
+		"dev": "bun run --filter @tuentyfaiv/http-docs dev",
+		"dev:library": "tsdown --watch",
+		"docs": "bun run dev",
+		"docs:build": "bun run --filter @tuentyfaiv/http-docs build",
+		"docs:preview": "bun run --filter @tuentyfaiv/http-docs preview",
+		"format": "biome format --write",
+		"format:check": "biome format",
+		"lint": "biome lint",
+		"lint:fix": "biome lint --write",
+		"pack:check": "bun run build && bun pm pack --dry-run",
+		"prepublishOnly": "bun run build",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"typecheck": "tsc -p tsconfig.json --noEmit"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.14",
+		"rimraf": "^6.0.1",
+		"tsdown": "^0.23.0",
+		"typescript": "^5.2.2",
+		"vitest": "^3.0.0"
+	},
+	"packageManager": "bun@1.4.2",
+	"engines": {
+		"node": ">=20"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }

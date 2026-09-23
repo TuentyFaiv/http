@@ -1,0 +1,122 @@
+---
+import { Code, TabItem, Tabs } from "@astrojs/starlight/components";
+
+import "../styles/home.css";
+
+import comparison from "../data/client-comparison.json" with { type: "json" };
+import { homepageLocale } from "../i18n/home";
+
+const own = comparison.clients.find((client) => client.id === "http");
+if (!own) {
+	throw new Error("The homepage requires a measured HTTP client result.");
+}
+const bytesPerKilobyte = 1000;
+const { t, href, locale } = homepageLocale(Astro.url.pathname);
+const examples = [
+	{
+		label: t("Typed results"),
+		code: `import { Http } from "@tuentyfaiv/http";
+
+type User = { id: number; name: string };
+
+const api = Http.create("https://api.example.com", {
+  timeout: 5000,
+  retry: 2,
+});
+
+const { payload } = await api.get<User>("/me");
+//      ^ User`,
+		note: t("An envelope by default. The payload type is yours."),
+		link: "guides/presets/",
+	},
+	{
+		label: t("Safe errors"),
+		code: `import { Http } from "@tuentyfaiv/http";
+
+type User = { id: number; name: string };
+const api = Http.create("https://api.example.com");
+
+const [error, result] = await api.safe.get<User>("/me");
+
+if (error) {
+  console.error(error.status, error.message);
+} else {
+  console.log(result.payload.name);
+}`,
+		note: t("Choose an error/result tuple or the throwing API."),
+		link: "guides/errors/",
+	},
+	{
+		label: t("Your conventions"),
+		code: `import { Http, bare } from "@tuentyfaiv/http";
+
+type User = { id: number; name: string };
+
+const api = Http.create("https://api.example.com", {
+  preset: bare,
+});
+
+const user = await api.get<User>("/me");
+//    ^ User — ${t("just the parsed body")}
+
+// ${t("Also included: envelope, rest, problem.")}`,
+		note: t("Change the return shape without changing the transport."),
+		link: "guides/presets/",
+	},
+];
+---
+
+<div class="home-hero home-surface">
+	<div class="home-hero__intro">
+		<p class="home-package">@tuentyfaiv/http <span>TypeScript · ESM</span></p>
+		<h1 id="_top" data-page-title>
+			{t("A complete HTTP client.")}<br><span>{t("Still")} <code>fetch</code> {t("underneath.")}</span>
+		</h1>
+		<p class="home-lead">
+			{t(
+	"Typed responses, retries, validation, and hooks. The parts you keep rebuilding around a request, in one dependency-free client."
+)}
+		</p>
+		<div class="home-actions">
+			<a class="home-button" href={href("getting-started/")}>{t("Get started")} <span aria-hidden="true">↗</span></a>
+			<a class="home-text-link" href="#comparisons">{t("See the comparisons")} <span aria-hidden="true">↓</span></a>
+		</div>
+		<div class="home-install">
+			<Tabs>
+				<TabItem label="Bun"><Code code="bun add @tuentyfaiv/http" lang="sh" frame="none" locale={locale} /></TabItem>
+				<TabItem label="npm"
+					><Code code="npm install @tuentyfaiv/http" lang="sh" frame="none" locale={locale} /></TabItem
+				>
+				<TabItem label="pnpm"><Code code="pnpm add @tuentyfaiv/http" lang="sh" frame="none" locale={locale} /></TabItem>
+			</Tabs>
+		</div>
+	</div>
+
+	<div class="home-editor">
+		<div class="home-editor__heading"><span>{t("One client. Your API.")}</span><span>client.ts</span></div>
+		<Tabs>
+			{examples.map((example) => (
+	<TabItem label={example.label}>
+		<Code code={example.code} lang="ts" frame="none" locale={locale} />
+		<a class="home-editor__note" href={href(example.link)}>
+			{example.note} <span aria-hidden="true">↗</span>
+		</a>
+	</TabItem>
+))}
+		</Tabs>
+	</div>
+
+	<nav class="home-facts" aria-label={t("Library at a glance")}>
+		<a href="#comparisons"
+			><strong>{(own.gzipBytes / bytesPerKilobyte).toFixed(2)} <small>kB</small></strong
+			><span>{t("minified + gzip¹")}</span></a
+		>
+		<a href="#comparisons"><strong>{own.runtimeDependencies}</strong><span>{t("runtime dependencies")}</span></a>
+		<a href={href("guides/presets/")}><strong>4</strong><span>{t("built-in response presets")}</span></a>
+		<a href="#capabilities"><strong>{t("Native")}</strong><span>{t("fetch, signals, and streams")}</span></a>
+	</nav>
+	<p class="home-facts__note">
+		{t("¹ Local build, browser GET + JSON fixture. Not the published release.")}
+		<a href="#methodology">{t("Measurement details")}</a>
+	</p>
+</div>

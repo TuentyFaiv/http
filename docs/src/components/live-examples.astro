@@ -1,0 +1,91 @@
+---
+import { Code } from "@astrojs/starlight/components";
+
+import "../styles/live-examples.css";
+
+import { exampleText, scenarios } from "../i18n/examples";
+import { homepageLocale } from "../i18n/home";
+import requestSource from "../scripts/demo-request-helper.ts?raw";
+import transferSource from "../scripts/demo-transfer-helper.ts?raw";
+
+const { locale } = homepageLocale(Astro.url.pathname);
+const t = exampleText(locale);
+---
+
+<section class="live-examples not-content" data-live-examples lang={locale} aria-label={t.title}>
+	<header><strong>{t.title}</strong><code>/http/api/examples/</code></header>
+	<p>{t.privacy}</p>
+	<form>
+		<fieldset>
+			<legend>{t.parameters}</legend>
+			<label
+				>{t.scenario}<select name="scenario" data-scenario>
+					{scenarios.map((scenario) => <option value={scenario}>{t[scenario]}</option>)}
+				</select></label
+			>
+			<div class="live-fields">
+				<label data-for="json safe timing"
+					>{t.preset}<select name="preset">
+						<option>envelope</option>
+						<option>bare</option>
+						<option>rest</option>
+						<option>problem</option>
+					</select></label
+				>
+				<label data-for="json schema hooks">{t.name}<input name="name" value="Ada" maxlength="100"></label>
+				<label data-for="json"
+					>{t.method}<select name="method">
+						<option>GET</option>
+						<option>POST</option>
+					</select></label
+				>
+				<label data-for="json">{t.body}<textarea name="body" rows="3" set:text={'{"name":"Ada"}'}></textarea></label>
+				<label data-for="schema" hidden><input name="invalid" type="checkbox">{t.invalid}</label>
+				<label data-for="safe" hidden
+					>{t.status}<select name="status">
+						<option>422</option>
+						<option>429</option>
+						<option>503</option>
+					</select></label
+				>
+				<label data-for="timing" hidden
+					>{t.delay}<input type="number" name="delay" value="1000" min="0" max="3000" required></label
+				>
+				<label data-for="timing" hidden
+					>{t.deadline}<input type="number" name="deadline" value="500" min="1" max="10000" required></label
+				>
+				<label data-for="upload" hidden>{t.file}<input type="file" name="file" required></label>
+				<label data-for="download" hidden><input type="checkbox" name="known" checked>{t.known}</label>
+			</div>
+		</fieldset>
+		<div class="live-actions">
+			<button type="submit" data-run disabled>{t.run}</button
+			><button type="button" data-cancel disabled>{t.cancel}</button>
+		</div>
+	</form>
+	<noscript>{t.js}</noscript>
+	<p data-state role="status" aria-live="polite">{t.idle}</p>
+	<div data-progress-area hidden><progress aria-label={t.progress}></progress><span data-progress-text></span></div>
+	<p class="live-note">{t.uploadNote}</p>
+	<div class="live-output">
+		<section aria-label={t.result}>
+			<h3>{t.result}</h3>
+			{/* biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard users need to scroll the bounded output */}
+			<pre data-result tabindex="0">{t.empty}</pre>
+		</section>
+		<section aria-label={t.log}>
+			<h3>{t.log}</h3>
+			{/* biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard users need to scroll the bounded event log */}
+			<pre data-log tabindex="0">{t.noEvents}</pre>
+		</section>
+	</div>
+	<details>
+		<summary>{t.source}</summary>
+		<p>{t.sourceNote}</p>
+		<div data-source="request"><Code code={requestSource} lang="ts" title="demo-request-helper.ts" /></div>
+		<div data-source="transfer" hidden><Code code={transferSource} lang="ts" title="demo-transfer-helper.ts" /></div>
+	</details>
+</section>
+<script>
+	import "../scripts/live-examples";
+</script>

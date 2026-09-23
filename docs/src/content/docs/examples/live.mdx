@@ -1,0 +1,28 @@
+---
+title: Live examples
+description: Run real HTTP requests with presets, validation, retries and streaming.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+
+Run a request, change its inputs, then inspect the result and actual source. Nothing is sent on page load. These examples use the local library and this site's `/http/api/examples/` API.
+
+<LiveExamples />
+
+## What to try
+
+- **JSON / presets:** compare `envelope`, `bare`, `rest` and `problem` on the same response. `bare` and `problem` preserve the JSON body; `envelope` unwraps `data`. Choose POST to send an editable JSON object; the demo server echoes only string `name` and `message` fields.
+- **Schema:** validate the unwrapped payload using a small Standard Schema validator. Require a numeric name to see validation fail.
+- **Hooks / retry:** request hooks run once per logical request. The injected Fetch transport adds `X-Demo-Attempt` on each send: attempts 1 and 2 return 503; attempt 3 succeeds. `Retry-After: 0` is honored.
+- **Safe failure:** inspect an error tuple for 422, 429 or 503 without an escaping exception. Choose `problem` for RFC 9457 details. This scenario does not retry; 429/503 advertise `Retry-After: 1`.
+- **Timeout / cancel:** the default 500 ms deadline expires before the 1000 ms response. Increase the deadline to finish, or Cancel while waiting.
+- **Transfers:** upload a raw file or download 256 KiB in 16 server chunks, with or without `Content-Length`. Network buffering may merge chunks. Unknown totals remain indeterminate.
+- **NDJSON:** six records arrive about 200 ms apart. The reader handles split UTF-8, split lines and decoder flush at EOF, with bounded buffers and records.
+
+## Limits and privacy
+
+JSON is limited to 16 KiB, uploads to 1 MiB, and server delays to 3000 ms. Uploads are counted and discarded, not stored. Responses use `Cache-Control: no-store`. Do not submit secrets or personal data; requests still pass through the hosting infrastructure. The panel does not persist results. Server JSON and protocol identifiers intentionally remain in their protocol language.
+
+Native browser Fetch **does not provide upload progress callbacks**. Uploads stay indeterminate until the server receipt; download progress reports received bytes and only shows a percentage with a usable total. Cancel aborts the client request, not work already received by the server. Leaving the page also aborts active work.
+
+Continue with [presets](/http/guides/presets/), [resilience](/http/guides/resilience/) and [file transfers](/http/recipes/file-transfers/).

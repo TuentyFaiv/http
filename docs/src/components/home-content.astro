@@ -1,0 +1,167 @@
+---
+import comparison from "../data/client-comparison.json" with { type: "json" };
+import { homepageLocale } from "../i18n/home";
+import ClientComparisons from "./client-comparisons.astro";
+
+const { t, href } = homepageLocale(Astro.url.pathname);
+const own = comparison.clients.find((client) => client.id === "http");
+
+const axios = comparison.clients.find((client) => client.id === "axios");
+if (!(own && axios)) {
+	throw new Error("Client versions are required for the capability comparison.");
+}
+const rows = [
+	{ feature: t("Transport"), values: [t("Native fetch"), "XHR / HTTP / fetch", t("Native fetch")] },
+	{
+		feature: t("Typed response presets"),
+		values: [t("4 + custom presets"), t("Transforms / wrapper"), t("Custom wrapper")],
+	},
+	{ feature: t("Request lifecycle"), values: [t("Async hooks"), t("Interceptors"), t("Custom wrapper")] },
+	{ feature: t("Automatic retry"), values: [t("Built-in option"), t("Plugin / custom code"), t("Custom code")] },
+	{
+		feature: t("Standard Schema validation"),
+		values: [t("Built in"), t("Custom integration"), t("Custom integration")],
+	},
+	{ feature: t("Error / result tuple"), values: ["api.safe", t("Custom wrapper"), t("Custom wrapper")] },
+	{ feature: t("Download progress"), values: [t("Built in"), t("Built in"), t("Read the stream")] },
+	{
+		feature: t("Upload progress callback"),
+		values: [t("Not built in"), t("Adapter-dependent"), t("Custom code")],
+	},
+];
+const features = [
+	{
+		title: t("Your API sets the shape."),
+		code: "preset: bare",
+		description: t(
+			"Envelope, raw body, REST-style metadata, or problem details. Pick a preset or define a typed shape of your own."
+		),
+		link: "guides/presets/",
+		action: t("Explore presets"),
+	},
+	{
+		title: t("Failure is part of the API."),
+		code: 'const [error, result] = await api.safe.get("/me");',
+		description: t(
+			"Keep status, cause, response, and request context together. Handle errors as values when that fits your code."
+		),
+		link: "guides/errors/",
+		action: t("Handle errors"),
+	},
+	{
+		title: t("Bring your own validator."),
+		code: 'api.get("/me", { schema: User })',
+		description: t(
+			"Validate with Standard Schema-compatible tools such as Zod or Valibot. Your validator stays a separate dependency."
+		),
+		link: "guides/validation/",
+		action: t("Validate a response"),
+	},
+];
+---
+
+<div class="home-content home-surface not-content">
+	<ClientComparisons />
+
+	<section class="home-section" aria-labelledby="features-title">
+		<div class="home-section__heading">
+			<div>
+				<p class="home-kicker">{t("Beyond a shorter fetch call")}</p>
+				<h2 id="features-title">{t("Opinionated defaults.")}<br>{t("Your conventions.")}</h2>
+			</div>
+			<p>
+				{t(
+	"Keep the platform primitives. Add the behavior your application needs without making a new wrapper for every project."
+)}
+			</p>
+		</div>
+		<div class="home-features">
+			{features.map((feature) => (
+	<article class="home-feature">
+		<h3>{feature.title}</h3>
+		<p>{feature.description}</p>
+		<code>{feature.code}</code>
+		<a href={href(feature.link)}>
+			{feature.action} <span aria-hidden="true">↗</span>
+		</a>
+	</article>
+))}
+		</div>
+		<div class="home-hook-strip">
+			<span>{t("Also included")}</span><a href={href("guides/resilience/")}>{t("Timeouts & retries ↗")}</a
+			><a href={href("guides/hooks/")}>{t("Composable hooks ↗")}</a
+			><a href={href("guides/errors/")}>{t("Handle errors ↗")}</a>
+		</div>
+	</section>
+
+	<section class="home-section" id="capabilities" aria-labelledby="capabilities-title">
+		<div class="home-section__heading">
+			<div>
+				<p class="home-kicker">{t("Choose the right abstraction")}</p>
+				<h2 id="capabilities-title">{t("More than a size contest.")}</h2>
+			</div>
+			<p>
+				{t("These clients make different choices. Here is what each provides directly, and what you would wire up yourself.")}
+			</p>
+		</div>
+		<!-- biome-ignore lint/a11y/noNoninteractiveTabindex: horizontal scrolling must be keyboard accessible -->
+		<section class="home-table-scroll" aria-label={t("HTTP client capability comparison")} tabindex="0">
+			<table class="home-table home-capabilities">
+				<caption>
+					{t(
+	"“Custom” means implementable in application code, not impossible. Validation requires a compatible schema; progress support depends on the runtime."
+)}
+				</caption>
+				<thead>
+					<tr>
+						<th scope="col">{t("Capability")}</th>
+						<th scope="col" class="home-own-column">
+							@tuentyfaiv/http<small>{own.version} · {t("local build")}</small>
+						</th>
+
+						<th scope="col">Axios<small>{axios.version}</small></th>
+						<th scope="col">fetch<small>{t("Web platform")}</small></th>
+					</tr>
+				</thead>
+				<tbody>
+					{rows.map((row) => (
+	<tr>
+		<th scope="row">{row.feature}</th>
+		{row.values.map((value, index) => (
+			<td class:list={{ "home-own-column": index === 0 }}>{value}</td>
+		))}
+	</tr>
+))}
+				</tbody>
+			</table>
+		</section>
+		<p class="home-source-links">
+			{t("References:")} <a href={href("getting-started/")}>{t("HTTP docs")}</a
+			><a href={`https://github.com/axios/axios/tree/v${axios.version}#readme`}>Axios {axios.version} ↗</a
+			><a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch">{t("Fetch API ↗")}</a>
+		</p>
+		<div class="home-tradeoff">
+			<h3>{t("When would you choose something else?")}</h3>
+			<p>
+				{t(
+	"Use native fetch when a few requests and your own error handling are enough. Axios offers a mature interceptor ecosystem and multiple transport adapters. Choose this client when typed response conventions and an integrated error model are the parts you want to stop rebuilding."
+)}
+			</p>
+		</div>
+	</section>
+
+	<section class="home-cta" aria-labelledby="start-title">
+		<div>
+			<p class="home-kicker">{t("No framework required")}</p>
+			<h2 id="start-title">{t("Start with one request.")}</h2>
+			<p>{t("Set a base URL. Choose your conventions. Keep your stack.")}</p>
+		</div>
+		<div class="home-actions">
+			<a class="home-button" href={href("getting-started/")}
+				>{t("Read the quickstart")} <span aria-hidden="true">↗</span></a
+			><a class="home-text-link" href="https://github.com/TuentyFaiv/http"
+				>{t("View source")} <span aria-hidden="true">↗</span></a
+			>
+		</div>
+	</section>
+</div>

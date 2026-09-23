@@ -1,0 +1,96 @@
+---
+---
+
+<div class="request-playground" data-request-playground>
+	<div class="request-playground__header">
+		<div>
+			<p class="request-playground__eyebrow">Live request trace</p>
+			<h2>Fetch a character through Http</h2>
+		</div>
+		<p class="request-playground__status" data-status role="status" aria-live="polite">Ready</p>
+	</div>
+
+	<div class="request-playground__body">
+		<form class="request-playground__form">
+			<label>
+				Character id
+				<input data-character-id type="number" min="1" max="826" value="1" inputmode="numeric">
+			</label>
+			<button type="submit">Send request</button>
+		</form>
+
+		<pre class="request-playground__output" data-output></pre>
+	</div>
+</div>
+
+<script>
+	import { Http, ServiceError } from "../../../src/index.ts";
+
+	interface Character {
+		id: number;
+		name: string;
+		status: string;
+		species: string;
+		location: { name: string };
+		image: string;
+	}
+
+	const root = document.querySelector<HTMLElement>("[data-request-playground]");
+
+	if (root) {
+		const form = root.querySelector<HTMLFormElement>("form");
+		const input = root.querySelector<HTMLInputElement>("[data-character-id]");
+		const output = root.querySelector<HTMLElement>("[data-output]");
+		const status = root.querySelector<HTMLElement>("[data-status]");
+		const api = Http.create("https://rickandmortyapi.com/api", { cache: false });
+
+		const print = (value: unknown) => {
+			if (output) {
+				output.textContent = JSON.stringify(value, null, 2);
+			}
+		};
+
+		print({ ready: true, hint: "Choose an id and send GET /character/:id" });
+
+		form?.addEventListener("submit", async (event) => {
+			event.preventDefault();
+
+			const id = Number(input?.value ?? 1);
+			if (!Number.isInteger(id) || id < 1) {
+				if (status) {
+					status.textContent = "Enter a valid id";
+				}
+
+				return;
+			}
+
+			if (status) {
+				status.textContent = "Requesting…";
+			}
+
+			const [error, result] = await api.safe.get<Character>(`/character/${id}`, {
+				timeout: 5000,
+				retry: 2,
+			});
+
+			if (error) {
+				if (status) {
+					status.textContent = error instanceof ServiceError ? `HTTP ${error.status ?? "error"}` : "Request failed";
+				}
+
+				print({ error: error.message });
+				return;
+			}
+
+			if (status) {
+				status.textContent = `HTTP ${result.response.status}`;
+			}
+
+			print({
+				request: `GET /character/${id}`,
+				payload: result.payload,
+				response: { status: result.response.status, ok: result.response.ok },
+			});
+		});
+	}
+</script>

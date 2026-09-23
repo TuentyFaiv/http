@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 64" fill="currentColor">
+	<title>http</title>
+	<path d="M4 4h9v19c3-3 7-5 12-5 10 0 16 7 16 18v16h-9V36c0-7-3-10-9-10s-10 4-10 10v16H4Z" />
+	<path
+		d="M56 8h9v12h19V8h9v12h19v8H93v11c0 4 2 5 6 5h9v8H98c-9 0-14-4-14-13V28H65v11c0 4 2 5 6 5h9v8H70c-9 0-14-4-14-13V28H47v-8h9Z"
+	/>
+	<path
+		fill-rule="evenodd"
+		d="M119 20h9v4c3-4 8-6 13-6 13 0 22 9 22 18s-9 18-22 18c-5 0-10-2-13-5v13h-9Zm9 16c0 6 5 10 13 10s13-4 13-10-5-10-13-10-13 4-13 10Z"
+	/>
+</svg>

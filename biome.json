@@ -1,0 +1,360 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
+	"root": true,
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": false,
+		"defaultBranch": "main"
+	},
+	"files": {
+		"ignoreUnknown": false,
+		"includes": [
+			"**",
+			"!!**/node_modules",
+			"!!**/dist",
+			"!!**/build",
+			"!!**/.astro",
+			"!!**/.wrangler",
+			"!!**/.dev.vars",
+			"!!**/.dev.vars.*",
+			"!!**/.output",
+			"!!**/.vercel",
+			"!!**/.turbo",
+			"!!**/test-results",
+			"!!**/coverage",
+			"!!**/.bun-cache",
+			"!!benchmarks/.cache",
+			"!!benchmarks/output",
+			"!!**/.DS_Store",
+			"!!**/Thumbs.db",
+			"!!**/.env",
+			"!!**/.env.*",
+			"!!**/vite.config.js.timestamp-*",
+			"!!**/vite.config.ts.timestamp-*",
+			"!!**/package-lock.json",
+			"!!**/pnpm-lock.yaml",
+			"!!**/yarn.lock",
+			"!!**/bun.lock",
+			"!!**/bun.lockb"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"formatWithErrors": false,
+		"indentStyle": "tab",
+		"indentWidth": 2,
+		"lineEnding": "lf",
+		"lineWidth": 120
+	},
+	"html": {
+		"experimentalFullSupportEnabled": true,
+		"formatter": {
+			"enabled": true,
+			"indentScriptAndStyle": true,
+			"indentStyle": "tab",
+			"indentWidth": 2,
+			"lineEnding": "lf",
+			"lineWidth": 120
+		}
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true,
+			"cssModules": true
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"enabled": true,
+			"trailingCommas": "es5",
+			"semicolons": "always",
+			"bracketSameLine": false
+		}
+	},
+	"json": {
+		"formatter": {
+			"enabled": true,
+			"indentStyle": "tab",
+			"indentWidth": 2,
+			"lineEnding": "lf",
+			"trailingCommas": "none"
+		}
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"noDuplicateClasses": "on",
+				"useSortedProperties": "on",
+				"useSortedPackageJson": "on",
+				"organizeImports": {
+					"level": "on",
+					"options": {
+						"sortBareImports": true,
+						"groups": [
+							{
+								"type": false,
+								"source": [":BUN:", ":NODE:", ":URL:"]
+							},
+							{
+								"type": false,
+								"source": ["astro", "astro/**", "@astrojs/**", "@astrojs/starlight/**"]
+							},
+							":BLANK_LINE:",
+							{
+								"type": false,
+								"source": [":PACKAGE:", ":PACKAGE_WITH_PROTOCOL:"]
+							},
+							":BLANK_LINE:",
+							{
+								"type": true,
+								"source": [":BUN:", ":NODE:", ":URL:"]
+							},
+							{
+								"type": true,
+								"source": ["astro", "astro/**", "@astrojs/**", "@astrojs/starlight/**"]
+							},
+							{
+								"type": true,
+								"source": [":PACKAGE:", ":PACKAGE_WITH_PROTOCOL:"]
+							},
+							{
+								"type": true,
+								"source": [":ALIAS:", ":PATH:"]
+							},
+							":BLANK_LINE:",
+							["~styles", "~styles/**", ":STYLE:"],
+							":BLANK_LINE:",
+							{
+								"type": false,
+								"source": [":ALIAS:", ":PATH:"]
+							}
+						]
+					}
+				}
+			}
+		}
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"preset": "recommended",
+			"a11y": {
+				"preset": "recommended",
+				"noNoninteractiveElementInteractions": "error"
+			},
+			"complexity": {
+				"preset": "recommended",
+				"noExcessiveCognitiveComplexity": "error",
+				"noExcessiveNestedTestSuites": "error",
+				"noForEach": "error",
+				"noImplicitCoercions": "error",
+				"noRedundantDefaultExport": "error",
+				"noUselessCatchBinding": "error",
+				"noUselessReturn": "error",
+				"noUselessStringConcat": "error",
+				"noUselessUndefined": "error",
+				"useArrayFind": "error",
+				"useMaxParams": "error",
+				"useSimplifiedLogicExpression": "error"
+			},
+			"correctness": {
+				"preset": "recommended",
+				"noUndeclaredDependencies": "error",
+				"useJsonImportAttributes": "error",
+				"useSingleJsDocAsterisk": "error"
+			},
+			"nursery": {},
+			"performance": {
+				"preset": "recommended",
+				"noAwaitInLoops": "error",
+				"noDelete": "error",
+				"noSyncScripts": "error",
+				"useTopLevelRegex": "error"
+			},
+			"security": {
+				"preset": "recommended",
+				"noSecrets": "error"
+			},
+			"style": {
+				"preset": "recommended",
+				"noCommonJs": "error",
+				"noDefaultExport": "error",
+				"noEnum": "error",
+				"noExcessiveClassesPerFile": {
+					"level": "on",
+					"options": {
+						"maxClasses": 2
+					}
+				},
+				"noMagicNumbers": "error",
+				"noMultiAssign": "error",
+				"noMultilineString": "error",
+				"noNamespace": "error",
+				"noParameterAssign": "error",
+				"noParameterProperties": "error",
+				"noUnusedTemplateLiteral": "error",
+				"noUselessElse": "error",
+				"noYodaExpression": "error",
+				"useAtIndex": "error",
+				"useBlockStatements": "error",
+				"useCollapsedElseIf": "error",
+				"useCollapsedIf": "error",
+				"useConsistentArrayType": "error",
+				"useConsistentArrowReturn": "error",
+				"useConsistentBuiltinInstantiation": "error",
+				"useDefaultParameterLast": "error",
+				"useDestructuring": "error",
+				"useExportsLast": "error",
+				"useFilenamingConvention": {
+					"level": "error",
+					"options": {
+						"filenameCases": ["kebab-case"]
+					}
+				},
+				"useForOf": "error",
+				"useFragmentSyntax": "error",
+				"useGlobalThis": "error",
+				"useImportType": {
+					"level": "error",
+					"options": {
+						"style": "separatedType"
+					}
+				},
+				"useNamingConvention": {
+					"level": "error",
+					"options": {
+						"conventions": [
+							{
+								"selector": {
+									"kind": "variable",
+									"scope": "any"
+								},
+								"formats": ["snake_case", "CONSTANT_CASE", "camelCase"]
+							},
+							{
+								"selector": {
+									"kind": "typeParameter",
+									"scope": "any"
+								},
+								"formats": ["CONSTANT_CASE"]
+							},
+							{
+								"selector": {
+									"kind": "classProperty",
+									"scope": "any"
+								},
+								"formats": ["snake_case", "camelCase"]
+							},
+							{
+								"selector": {
+									"kind": "objectLiteralProperty",
+									"scope": "any"
+								},
+								"formats": ["snake_case", "camelCase", "CONSTANT_CASE"]
+							},
+							{
+								"selector": {
+									"kind": "typeProperty",
+									"scope": "any"
+								},
+								"formats": ["snake_case", "camelCase"]
+							}
+						]
+					}
+				},
+				"useNumberNamespace": "error",
+				"useNumericSeparators": "error",
+				"useShorthandAssign": "error",
+				"useSingleVarDeclarator": "error",
+				"useSymbolDescription": "error",
+				"useThrowNewError": "error",
+				"useThrowOnlyError": "error",
+				"useTrimStartEnd": "error",
+				"noHexColors": "error"
+			},
+			"suspicious": {
+				"preset": "recommended",
+				"noAlert": "error",
+				"noConsole": "error",
+				"noEmptyBlockStatements": "error",
+				"noForIn": "error",
+				"noMisplacedAssertion": "error",
+				"noNestedPromises": "error",
+				"noReturnAssign": "error",
+				"noSkippedTests": "error",
+				"noVar": "error",
+				"useAwait": "error",
+				"useErrorMessage": "error",
+				"useGuardForIn": "error",
+				"useNumberToFixedDigitsArgument": "error",
+				"useStaticResponseMethods": "error",
+				"noDuplicateDependencies": "error"
+			}
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["**/*.astro"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noDefaultExport": "off",
+						"useExportsLast": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"src/index.ts",
+				"**/*.config.js",
+				"**/*.config.mjs",
+				"**/*.config.ts",
+				"rollup.config.visualizer.js"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"noDefaultExport": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"useExportsLast": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["tests/**", "examples/**"],
+			"linter": {
+				"rules": {
+					"complexity": {
+						"noExcessiveCognitiveComplexity": "off"
+					},
+					"style": {
+						"noMagicNumbers": "off",
+						"useNamingConvention": "off"
+					},
+					"security": {
+						"noSecrets": "off"
+					},
+					"suspicious": {
+						"noConsole": "off",
+						"noEmptyBlockStatements": "off",
+						"useAwait": "off"
+					},
+					"performance": {
+						"noAwaitInLoops": "off"
+					}
+				}
+			}
+		}
+	]
+}

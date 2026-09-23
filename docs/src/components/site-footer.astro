@@ -1,0 +1,50 @@
+---
+import DefaultFooter from "@astrojs/starlight/components/Footer.astro";
+
+import { homepageLocale } from "../i18n/home";
+
+const { t, href, isHome } = homepageLocale(Astro.url.pathname);
+---
+
+{isHome ? (
+	<footer class="home-footer home-surface not-content">
+		<div class="home-footer__main">
+			<div class="home-footer__identity">
+				<a class="home-footer__name" href={href()}>
+					@tuentyfaiv/http
+				</a>
+				<p>
+					{t("A complete HTTP client.")}
+					<br />
+					{t("Still fetch underneath.")}
+				</p>
+			</div>
+			<nav aria-label={t("Footer documentation")}>
+				<h2>{t("Documentation")}</h2>
+				<a href={href("getting-started/")}>{t("Getting started")}</a>
+				<a href={href("guides/presets/")}>{t("Response presets")}</a>
+				<a href={href("guides/validation/")}>{t("Validation guide")}</a>
+			</nav>
+			<nav aria-label={t("Footer project")}>
+				<h2>{t("Project")}</h2>
+				<a href="https://github.com/TuentyFaiv/http">
+					GitHub <span aria-hidden="true">↗</span>
+				</a>
+				<a href="https://www.npmjs.com/package/@tuentyfaiv/http">
+					npm <span aria-hidden="true">↗</span>
+				</a>
+				<a href="https://github.com/TuentyFaiv/http/issues">
+					{t("Report an issue")} <span aria-hidden="true">↗</span>
+				</a>
+			</nav>
+		</div>
+		<div class="home-footer__bottom">
+			<p>
+				{t("Built by")} <a href="https://github.com/TuentyFaiv">TuentyFaiv</a>.
+			</p>
+			<a href="https://github.com/TuentyFaiv/http/blob/main/LICENSE">{t("MIT licensed")}</a>
+		</div>
+	</footer>
+) : (
+	<DefaultFooter />
+)}

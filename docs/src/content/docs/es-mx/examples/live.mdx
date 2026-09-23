@@ -1,0 +1,28 @@
+---
+title: Ejemplos en vivo
+description: Ejecuta solicitudes HTTP reales con presets, validación, reintentos y streaming.
+---
+
+import LiveExamples from "../../../../components/live-examples.astro";
+
+Ejecuta una solicitud, cambia sus parámetros e inspecciona el resultado y el código real. No se envía nada al abrir la página. Los ejemplos usan la biblioteca local y la API `/http/api/examples/` de este sitio.
+
+<LiveExamples />
+
+## Qué probar
+
+- **JSON / presets:** compara `envelope`, `bare`, `rest` y `problem` con la misma respuesta. `bare` y `problem` conservan el cuerpo JSON; `envelope` extrae `data`. Elige POST para enviar un objeto JSON editable; el servidor solo devuelve los campos de texto `name` y `message`.
+- **Esquema:** valida el contenido extraído con un pequeño validador Standard Schema. Exige un nombre numérico para provocar un error de validación.
+- **Hooks / reintentos:** los hooks de solicitud se ejecutan una vez por solicitud lógica. El transporte Fetch inyectado agrega `X-Demo-Attempt` en cada envío: los intentos 1 y 2 reciben 503; el tercero tiene éxito. Se respeta `Retry-After: 0`.
+- **Error seguro:** inspecciona la tupla de error para 422, 429 o 503 sin propagar una excepción. Elige `problem` para los detalles RFC 9457. Este escenario no reintenta; 429/503 anuncian `Retry-After: 1`.
+- **Tiempo límite / cancelación:** el límite inicial de 500 ms vence antes de la respuesta de 1000 ms. Aumenta el límite para completar la solicitud o cancélala durante la espera.
+- **Transferencias:** carga un archivo sin transformar o descarga 256 KiB en 16 bloques del servidor, con o sin `Content-Length`. La red puede agrupar bloques. Los totales desconocidos permanecen indeterminados.
+- **NDJSON:** llegan seis registros con unos 200 ms entre ellos. El lector maneja UTF-8 y líneas divididas, y vacía el decodificador al llegar a EOF, con límites de memoria y registros.
+
+## Límites y privacidad
+
+El JSON se limita a 16 KiB, los archivos a 1 MiB y las esperas a 3000 ms. Los archivos se cuentan y descartan; no se almacenan. Las respuestas usan `Cache-Control: no-store`. No envíes secretos ni datos personales: las solicitudes pasan por la infraestructura de alojamiento. El panel no guarda resultados. El JSON del servidor y los identificadores de protocolo conservan intencionalmente su idioma de protocolo.
+
+Fetch nativo del navegador **no ofrece callbacks de progreso de carga**. La carga permanece indeterminada hasta recibir el comprobante del servidor; el progreso de descarga mide bytes recibidos y solo muestra un porcentaje si hay un total utilizable. Cancelar aborta la solicitud del cliente, no el trabajo que el servidor ya recibió. Salir de la página también cancela el trabajo activo.
+
+Continúa con [presets](/http/es-mx/guides/presets/), [resiliencia](/http/es-mx/guides/resilience/) y [transferencias de archivos](/http/es-mx/recipes/file-transfers/).

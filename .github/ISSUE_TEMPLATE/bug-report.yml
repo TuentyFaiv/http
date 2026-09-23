@@ -1,0 +1,51 @@
+name: Bug report
+description: Report a reproducible problem in @tuentyfaiv/http
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem. Please include a minimal reproduction when possible.
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      description: Which version of @tuentyfaiv/http are you using?
+      placeholder: 0.1.15
+    validations:
+      required: true
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime and version
+      description: Browser, Node, Bun, Deno, or edge runtime and its version.
+      placeholder: Bun 1.4.2 / macOS
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide a minimal code sample or a link to a repository.
+      render: ts
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or stack trace
+      render: text

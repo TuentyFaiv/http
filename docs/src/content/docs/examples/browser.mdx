@@ -1,0 +1,74 @@
+---
+title: Browser
+description: FormData uploads, blob downloads, download progress and hooks in a real browser.
+draft: true
+pagefind: false
+sidebar:
+  hidden: true
+---
+
+import { Code, Aside } from "@astrojs/starlight/components";
+import RequestPlayground from "../../../components/request-playground.astro";
+import example from "../../../../../examples/browser/main.ts?raw";
+
+This example exercises the pieces that only exist in a browser: a `FormData` upload, a
+blob download with progress, hooks on the shared default instance, and `safe()` instead
+of `try`/`catch`.
+
+<Aside type="note">
+	The source below is imported straight from `examples/browser/main.ts`, so it is the
+	same file the repository typechecks — it cannot drift from this page.
+</Aside>
+
+<Code code={example} lang="ts" title="examples/browser/main.ts" />
+
+## Running it
+
+The character listing works against the public Rick and Morty api with no setup. The
+upload form expects a local service on `http://localhost:5000` that accepts a
+`multipart/form-data` file at `POST /transform` and responds with an image.
+
+## Try it in the browser
+
+The playground below makes the same kind of request as the source example. It uses the
+library's default envelope, timeout, retry, and `safe()` result tuple — no local server
+needed.
+
+<RequestPlayground />
+
+Any small server will do:
+
+```ts
+// server.ts — run with `bun run server.ts`
+Bun.serve({
+  port: 5000,
+  async fetch(request) {
+    if (new URL(request.url).pathname !== "/transform") {
+      return new Response("Not found", { status: 404 });
+    }
+
+    const form = await request.formData();
+    const file = form.get("file");
+
+    if (!(file instanceof File)) {
+      return new Response(JSON.stringify({ errors: { file: "required" } }), {
+        status: 422,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(file, {
+      headers: {
+        "Content-Type": "image/webp",
+        "Content-Length": String(file.size),
+      },
+    });
+  },
+});
+```
+
+<Aside type="tip">
+	`Content-Length` is what makes `onDownloadProgress` able to report `percent`. Without
+	it you still get `loaded`, and `percent` stays `undefined` so a progress bar can fall
+	back to indeterminate.
+</Aside>

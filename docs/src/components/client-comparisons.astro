@@ -1,0 +1,200 @@
+---
+import { Code, TabItem, Tabs } from "@astrojs/starlight/components";
+
+import comparison from "../data/client-comparison.json" with { type: "json" };
+import { homepageLocale } from "../i18n/home";
+
+const { t, locale } = homepageLocale(Astro.url.pathname);
+
+const bytesPerKilobyte = 1000;
+const percentScale = 100;
+const timingPrecision = 3;
+const clients = [...comparison.clients].sort((a, b) => {
+	const order = ["http", "axios", "fetch"];
+	return order.indexOf(a.id) - order.indexOf(b.id);
+});
+const metricDefinitions = [
+	{
+		id: "size",
+		label: t("Bundle size"),
+		title: t("What ships to the browser"),
+		unit: t("kB, minified + gzip · lower is smaller"),
+		key: "gzipBytes" as const,
+		format: (value: number) => `${(value / bytesPerKilobyte).toFixed(2)} kB`,
+		note: t(
+			"Same bundler, separate GET + JSON entrypoints. Includes client code and the request wrapper. Native fetch is built into the runtime; its bar is only the wrapper."
+		),
+	},
+	{
+		id: "overhead",
+		label: t("Request overhead"),
+		title: t("The work around a request"),
+		unit: t("µs / operation · lower is less overhead"),
+		key: "medianUs" as const,
+		format: (value: number) => `${value.toFixed(2)} µs`,
+		note: t(
+			"An in-memory test, not network speed. Median of sample means for GET + JSON, run in Bun with retries and timeouts disabled."
+		),
+	},
+	{
+		id: "dependencies",
+		label: t("Dependencies"),
+		title: t("What else gets installed"),
+		unit: t("declared direct runtime dependencies"),
+		key: "runtimeDependencies" as const,
+		format: (value: number) => String(value),
+		note: t(
+			"Package-level runtime dependencies, not transitive packages or code retained in your browser bundle. Axios also supports Node-specific transports."
+		),
+	},
+];
+const repo = "https://github.com/TuentyFaiv/http";
+const [measuredDate] = comparison.measuredAt.split("T");
+---
+
+<section class="home-section home-comparisons" id="comparisons" aria-labelledby="comparison-title">
+	<div class="home-section__heading">
+		<div>
+			<p class="home-kicker">{t("The cost of a client")}</p>
+			<h2 id="comparison-title">{t("Small footprint.")}<br>{t("Visible tradeoffs.")}</h2>
+		</div>
+		<p>
+			{t(
+	"Bundle size is one part of the decision. Compare the code you ship, the work per request, and the dependencies you take on."
+)}
+		</p>
+	</div>
+
+	<div class="home-benchmark">
+		<Tabs>
+			{metricDefinitions.map((metric) => {
+	const max = Math.max(...clients.map((client) => client[metric.key]));
+	return (
+		<TabItem label={metric.label}>
+			<div class="home-benchmark__heading">
+				<h3>{metric.title}</h3>
+				<span>{metric.unit}</span>
+			</div>
+			<dl class="home-chart">
+				{clients.map((client) => (
+					<div class:list={["home-chart__row", { "home-chart__row--own": client.id === "http" }]}>
+						<dt>
+							<strong>{client.id === "fetch" ? t("Native fetch") : client.name}</strong>
+							<small>
+								{client.provenance === "local-working-tree" ? `${t("Local")} ${client.version}` : client.version}
+							</small>
+						</dt>
+						<dd>
+							<span class="home-chart__track" aria-hidden="true">
+								<span style={`width:${(client[metric.key] / max) * percentScale}%`}></span>
+							</span>
+							<strong>{metric.format(client[metric.key])}</strong>
+						</dd>
+					</div>
+				))}
+			</dl>
+			<p class="home-benchmark__note">{metric.note}</p>
+		</TabItem>
+	);
+})}
+		</Tabs>
+		<div class="home-benchmark__meta">
+			<span
+				>{t("Measured")} <time datetime={comparison.measuredAt}>{measuredDate}</time> · {comparison.runtime.name}
+				{comparison.runtime.version}
+				· {comparison.cpu.model}</span
+			><a href="#methodology">{t("How we measured")} <span aria-hidden="true">↓</span></a>
+		</div>
+	</div>
+
+	<details class="home-methodology" id="methodology">
+		<summary>{t("Methodology, exact results, and reproduction")}</summary>
+		<div class="home-methodology__body">
+			<div class="home-methodology__grid">
+				<div>
+					<h3>{t("Browser bundle")}</h3>
+					<p>
+						{t(
+	"Bun.build {version}, minified ESM, gzip level {level}. Separate exported GET + JSON functions with runtime URLs. Defaults remain in the size fixtures; HTTP uses the bare preset. Decimal kB = 1,000 bytes.",
+	{
+		version: comparison.methodology.bundler.version,
+		level: comparison.methodology.bundler.gzipLevel,
+	}
+)}
+					</p>
+				</div>
+				<div>
+					<h3>{t("Client overhead")}</h3>
+					<p>
+						{t(
+	"{warmup} warmups, {samples} samples of {iterations} sequential operations per client. Identical {bytes}-byte JSON responses, parsing and payload checks. No DNS, TLS, server, or network latency.",
+	{
+		warmup: comparison.methodology.warmup,
+		samples: comparison.methodology.samples,
+		iterations: comparison.methodology.iterations.toLocaleString(locale),
+		bytes: comparison.methodology.payload.bytes,
+	}
+)}
+					</p>
+				</div>
+				<div>
+					<h3>{t("Limits of this snapshot")}</h3>
+					<p>
+						{t(
+	"macOS {arch}, {cpu}. Browser bundles executed in Bun, not browser-engine timings. Reused instances; no retries or timeouts. These results do not measure uploads, failed requests, or end-to-end latency.",
+	{
+		arch: comparison.platform.arch,
+		cpu: comparison.cpu.model,
+	}
+)}
+					</p>
+				</div>
+			</div>
+			<!-- biome-ignore lint/a11y/noNoninteractiveTabindex: horizontal scrolling must be keyboard accessible -->
+			<section class="home-table-scroll" aria-label={t("Exact benchmark measurements")} tabindex="0">
+				<table class="home-table">
+					<caption>
+						{t("Min/max are sample means, not request percentiles. Lower is not necessarily better for your use case.")}
+					</caption>
+					<thead>
+						<tr>
+							<th scope="col">{t("Client")}</th>
+							<th scope="col">{t("Minified bytes")}</th>
+							<th scope="col">{t("Gzip bytes")}</th>
+							<th scope="col">{t("Median µs/op")}</th>
+							<th scope="col">{t("Min–max µs/op")}</th>
+						</tr>
+					</thead>
+					<tbody>
+						{clients.map((client) => (
+	<tr>
+		<th scope="row">{client.id === "fetch" ? t("Native fetch") : client.name}</th>
+		<td>{client.bundleBytes.toLocaleString(locale)}</td>
+		<td>{client.gzipBytes.toLocaleString(locale)}</td>
+		<td>{client.medianUs.toFixed(timingPrecision)}</td>
+		<td>
+			{client.minUs.toFixed(timingPrecision)}–{client.maxUs.toFixed(timingPrecision)}
+		</td>
+	</tr>
+))}
+					</tbody>
+				</table>
+			</section>
+			<p>
+				{t("HTTP is measured from the local working tree, not the npm release with the same version. Source fingerprint:")}
+				<code class="home-source-hash">{comparison.methodology.localSource.digest}</code>
+				{t(". Timing varies with CPU load, garbage collection, and runtime. No statistical significance is claimed.")}
+			</p>
+			<Code
+				code={"bun benchmarks/install-isolated.mjs\nbun benchmarks/run.mjs\nbun benchmarks/verify.mjs"}
+				locale={locale}
+				lang="sh"
+				frame="none"
+			/>
+			<p class="home-source-links">
+				<a href={`${repo}/tree/main/benchmarks`}>{t("Benchmark source ↗")}</a
+				><a href={`${repo}/blob/main/docs/src/data/client-comparison.json`}>{t("Raw samples + build settings ↗")}</a>
+			</p>
+		</div>
+	</details>
+</section>

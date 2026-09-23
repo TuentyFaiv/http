@@ -1,22 +1,48 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-console */
-import type { HttpLog } from "../typing/functions/log.typing.js";
+// biome-ignore-all lint/suspicious/noConsole: this file *is* the console logger; callers opt in via `log`
+import type { HttpLogger } from "../typing/classes/http.typing.js";
 
-export function logger(httpLog: HttpLog) {
-  Object.keys(httpLog).forEach((key) => {
-    const keyName = key as keyof typeof httpLog;
-    const value: any = httpLog[keyName];
+const STYLE = "color: #00b894; font-weight: bold;";
 
-    if (keyName === "request") {
-      const headers = Object.fromEntries(value.headers.entries());
+const SENSITIVE = new Set([
+	"authorization",
+	"proxy-authorization",
+	"cookie",
+	"set-cookie",
+	"x-api-key",
+	"x-auth-token",
+]);
 
-      console.log("%cHEADERS:", "color: #00b894; font-weight: bold;", headers);
-      console.log("%cBODY:", "color: #00b894; font-weight: bold;", value.body);
-      console.log("%cMETHOD:", "color: #00b894; font-weight: bold;", value.method);
-    } else {
+export function redactHeaders(headers: Headers): Record<string, string> {
+	const result: Record<string, string> = {};
 
-      const keyLog = keyName === "url" ? "endpoint" : `${keyName}`;
-      console.log(`%c${keyLog.toUpperCase()}:`, "color: #00b894; font-weight: bold;", value);
-    }
-  });
+	for (const [key, value] of headers.entries()) {
+		result[key] = SENSITIVE.has(key.toLowerCase()) ? "[redacted]" : value;
+	}
+
+	return result;
 }
+
+export const consoleLogger: HttpLogger = {
+	request({ url, init }) {
+		console.log("%cREQUEST:", STYLE, {
+			url,
+			method: init.method,
+			headers: redactHeaders(init.headers),
+			body: init.body,
+		});
+	},
+
+	response({ url, response, body, duration }) {
+		console.log("%cRESPONSE:", STYLE, {
+			url,
+			status: response.status,
+			duration: `${duration}ms`,
+			headers: redactHeaders(response.headers),
+			body,
+		});
+	},
+
+	error({ url, error }) {
+		console.error("%cERROR:", STYLE, { url, error });
+	},
+};

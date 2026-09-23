@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://tuentyfaiv.github.io/http/
+    about: Read the guides and interactive examples before opening an issue.
+  - name: Security report
+    url: https://github.com/TuentyFaiv/http/security/policy
+    about: Report vulnerabilities privately using the security policy.

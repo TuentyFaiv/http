@@ -1,0 +1,132 @@
+/* Keep the same content bounds on landing pages and documentation pages. */
+.content-panel > .sl-container {
+	width: 100%;
+	max-width: var(--http-content-width);
+	margin-inline: auto;
+}
+
+:root[data-has-sidebar] {
+	--sl-content-inline-start: 0rem;
+	--sl-mobile-toc-height: 3.5rem;
+	--sl-sidebar-width: 15rem;
+	scroll-padding-top: calc(var(--sl-nav-height) + var(--sl-mobile-toc-height) + 1.5rem);
+}
+
+[data-has-sidebar] .main-frame {
+	padding-inline-start: 0;
+}
+
+[data-has-sidebar] .main-pane {
+	--sl-content-margin-inline: auto;
+	width: 100%;
+	min-width: 0;
+}
+
+/* Side rails must not subtract space from the shared reading area. */
+[data-has-sidebar] .right-sidebar-container {
+	width: 0;
+}
+
+[data-has-sidebar] .right-sidebar {
+	position: static;
+	width: auto;
+	height: auto;
+	padding: 0;
+	overflow: visible;
+	border: 0;
+}
+
+[data-has-sidebar] .right-sidebar > .lg\:sl-hidden {
+	display: block;
+}
+
+[data-has-sidebar] .right-sidebar-panel {
+	display: none;
+}
+
+[data-has-sidebar] .sidebar-pane {
+	--sl-sidebar-visibility: hidden;
+	width: min(22rem, 100%);
+	border-inline-end: 1px solid var(--http-border);
+}
+
+[data-has-sidebar] starlight-menu-button[aria-expanded="true"] ~ .sidebar-pane {
+	--sl-sidebar-visibility: visible;
+}
+
+[data-has-sidebar] starlight-menu-button button {
+	display: flex;
+}
+
+/* Reserve the menu slot on both page types so header controls stay put. */
+header.header {
+	padding-inline-end: calc(var(--sl-nav-gap) + var(--sl-nav-pad-x) + var(--sl-menu-button-size));
+}
+
+[data-has-sidebar] body[data-mobile-menu-expanded] {
+	overflow: hidden;
+}
+
+/* Starlight's default header grid depends on sidebar/TOC presence. */
+@media (min-width: 50rem) {
+	header.header > .header {
+		grid-template-columns:
+			minmax(max-content, calc((100vw - var(--http-content-width)) / 2 - var(--sl-nav-pad-x) - var(--sl-nav-gap)))
+			minmax(0, 1fr) auto;
+	}
+}
+
+/* 72rem of content + two 15rem rails, with breathing room between them. */
+@media (min-width: 112rem) {
+	:root[data-has-sidebar] {
+		--sl-mobile-toc-height: 0rem;
+	}
+
+	[data-has-sidebar] .sidebar-pane {
+		--sl-sidebar-visibility: visible;
+		inset-inline-start: calc((100vw - var(--http-content-width)) / 2 - 17rem);
+		width: var(--sl-sidebar-width);
+	}
+
+	[data-has-sidebar] starlight-menu-button button,
+	[data-has-sidebar] .right-sidebar > .lg\:sl-hidden {
+		display: none;
+	}
+
+	[data-has-sidebar] .right-sidebar-panel {
+		display: block;
+		padding-inline: 1rem;
+	}
+
+	[data-has-sidebar] .right-sidebar-panel .sl-container {
+		width: auto;
+		max-width: none;
+	}
+
+	[data-has-sidebar] .right-sidebar {
+		position: fixed;
+		inset-block: var(--sl-nav-height) 0;
+		inset-inline-start: calc((100vw + var(--http-content-width)) / 2 + 2rem);
+		width: var(--sl-sidebar-width);
+		overflow-y: auto;
+		border-inline-start: 1px solid var(--http-border);
+	}
+
+	header.header {
+		padding-inline-end: var(--sl-nav-pad-x);
+	}
+
+	[data-has-sidebar] body[data-mobile-menu-expanded] {
+		overflow: auto;
+	}
+}
+
+@media print {
+	:root[data-has-sidebar] {
+		--sl-mobile-toc-height: 0rem;
+	}
+
+	[data-has-sidebar] .right-sidebar-container {
+		display: none;
+	}
+}

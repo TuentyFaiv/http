@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+	<title>http — core and shell symbol</title>
+	<desc>A continuous transport line passes through two open, opposing shell halves.</desc>
+	<path d="M10 24v-4c0-8 6-14 14-14h30l-8 10H24c-2 0-4 2-4 4v4Z" />
+	<path d="M2 28h60v8H2Z" />
+	<path d="M54 40v4c0 8-6 14-14 14H10l8-10h22c2 0 4-2 4-4v-4Z" />
+</svg>

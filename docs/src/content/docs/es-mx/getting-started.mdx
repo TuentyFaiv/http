@@ -1,0 +1,103 @@
+---
+title: Primeros pasos
+description: Instala el cliente, realiza una solicitud tipada y configura instancias seguras.
+sidebar:
+  order: 1
+---
+
+import { Code, TabItem, Tabs } from "@astrojs/starlight/components";
+
+## Instalación
+
+<Tabs syncKey="pkg">
+	<TabItem label="bun">
+		<Code code="bun add @tuentyfaiv/http" lang="sh" />
+	</TabItem>
+	<TabItem label="npm">
+		<Code code="npm install @tuentyfaiv/http" lang="sh" />
+	</TabItem>
+	<TabItem label="pnpm">
+		<Code code="pnpm add @tuentyfaiv/http" lang="sh" />
+	</TabItem>
+</Tabs>
+
+El paquete usa únicamente ESM y no tiene dependencias de ejecución. Usa Node.js 20+
+o un navegador moderno, Bun, Deno o un entorno edge que incluya las API estándar de Fetch.
+
+## Realiza una solicitud
+
+```ts
+import { Http } from "@tuentyfaiv/http";
+
+type User = { id: number; name: string };
+
+const api = Http.create("https://api.example.com/v1", { cache: false });
+const { payload, response } = await api.get<User>("/users/1");
+
+console.log(payload.name, response.status);
+```
+
+Reemplaza la URL por la de tu API. La diagonal inicial conserva la ruta base: esta
+solicitud usa `https://api.example.com/v1/users/1`. El genérico describe el payload
+esperado; no valida los datos del servidor. Usa un [esquema](../guides/validation/)
+para validarlos.
+
+El preset predeterminado, `envelope`, devuelve:
+
+| Campo | Significado |
+| --- | --- |
+| `payload` | Datos procesados; extrae el primer campo `data` o `payload` que no sea nulo. |
+| `response` | Un objeto `Response` de Fetch; los cuerpos JSON y de texto se clonan por defecto para poder leerlos de nuevo. |
+| `message` | Mensaje elegido por el preset, normalmente `message` de la API o una cadena vacía. |
+| `success` | Indicador calculado por el preset, **no** un alias de `response.ok`. Un arreglo JSON vacío puede producir `false` con HTTP 200. |
+
+Los errores HTTP y los errores reconocidos de la API rechazan la promesa. Usa los
+[métodos `safe`](../guides/errors/) si prefieres una tupla de error y resultado.
+Elige [`bare` o `rest`](../guides/presets/) si tu API no sigue las convenciones de envelope.
+
+## Configura una instancia
+
+```ts
+import { Http } from "@tuentyfaiv/http";
+
+const api = Http.create("https://api.example.com/v1", {
+	cache: false,
+	headers: { "Accept-Language": "es-MX" },
+	params: { locale: "es-MX" },
+	timeout: 5_000,
+	retry: 2,
+});
+
+await api.get("/health", { timeout: 1_000, retry: 0 });
+```
+
+Los encabezados y parámetros de la solicitud reemplazan los valores predeterminados
+con la misma clave. También puedes sobrescribir `timeout`, `retry`, `secure`, `log`
+y `errorMessage` por solicitud. Pasa opciones de Fetch como `credentials` o `signal`
+a la solicitud, no a `create`.
+
+:::caution[La caché de instancias no almacena respuestas]
+Por defecto, `Http.create` usa la cadena exacta de la URL base como clave de caché.
+Otra llamada con esa URL devuelve el cliente original e **ignora la nueva configuración**,
+incluso un preset o credenciales diferentes. Usa `cache: false` para aislar solicitudes
+en el servidor, en pruebas y cuando necesites clientes con distinta configuración
+para la misma URL. Esta opción es independiente de `cache` de Fetch por solicitud.
+:::
+
+## Sin URL base
+
+```ts
+import http from "@tuentyfaiv/http";
+
+await http.get("https://api.example.com/health");
+```
+
+La exportación predeterminada no tiene URL base. En el navegador también funcionan
+las rutas relativas; los entornos de servidor generalmente requieren una URL absoluta.
+
+## Siguientes pasos
+
+- [Solicitudes y respuestas](../guides/requests-responses/): métodos, parámetros, cuerpos y lectura de respuestas.
+- [Presets](../guides/presets/): elige la estructura del resultado y las convenciones de error.
+- [Hooks](../guides/hooks/): observa o reemplaza solicitudes y respuestas.
+- [Tiempos de espera, reintentos y progreso](../guides/resilience/): cancelación y comportamiento del transporte.

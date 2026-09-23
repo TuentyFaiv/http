@@ -1,0 +1,153 @@
+.live-examples {
+	--live-ink: var(--sl-color-white);
+	--live-muted: var(--sl-color-gray-2);
+	--live-panel: var(--http-surface);
+	--live-border: var(--http-border);
+	--live-focus: var(--sl-color-accent);
+	padding: clamp(1rem, 3vw, 1.5rem);
+	font-family: var(--sl-font, system-ui);
+	color: var(--live-ink);
+	background: var(--live-panel);
+	border: 1px solid var(--live-border);
+	border-radius: 0.75rem;
+}
+.live-examples > :where(p, form, .live-output) {
+	margin-top: 1rem;
+}
+.live-examples [hidden][hidden] {
+	display: none;
+}
+.live-examples header,
+.live-examples .live-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	align-items: center;
+}
+.live-examples header {
+	justify-content: space-between;
+}
+.live-examples header strong {
+	font-size: 1.2rem;
+	letter-spacing: -0.025em;
+}
+.live-examples header code {
+	font-size: 0.75rem;
+	color: var(--live-muted);
+	background: transparent;
+}
+.live-examples p,
+.live-examples legend {
+	font-size: 0.875rem;
+}
+.live-examples fieldset {
+	min-width: 0;
+	padding: 0;
+	margin: 1rem 0;
+	border: 0;
+}
+.live-examples legend {
+	margin-bottom: 0.5rem;
+	color: var(--live-muted);
+}
+.live-examples .live-fields,
+.live-examples .live-output {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem;
+	align-items: start;
+}
+.live-examples label {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	align-items: center;
+	margin-top: 0.75rem;
+	font-size: 0.875rem;
+}
+.live-examples input:not([type="checkbox"]),
+.live-examples select,
+.live-examples textarea {
+	width: 100%;
+	min-width: 0;
+	padding: 0.5rem;
+	font: inherit;
+	color: var(--live-ink);
+	background: var(--sl-color-bg);
+	border: 1px solid var(--live-border);
+	border-radius: 0.35rem;
+}
+.live-examples textarea,
+.live-examples pre {
+	font-family: var(--sl-font-mono, monospace);
+}
+.live-examples input[type="checkbox"] {
+	accent-color: var(--live-focus);
+}
+.live-examples button {
+	padding: 0.45rem 1.25rem;
+	font: inherit;
+	font-weight: 600;
+	color: var(--live-panel);
+	cursor: pointer;
+	background: var(--live-ink);
+	border: 1px solid var(--live-border);
+	border-radius: 0.35rem;
+}
+.live-examples button:disabled {
+	cursor: not-allowed;
+	opacity: 0.45;
+}
+.live-examples :focus-visible {
+	outline: 2px solid var(--live-focus);
+	outline-offset: 3px;
+}
+.live-examples .live-note {
+	padding-left: 0.75rem;
+	color: var(--live-muted);
+	border-left: 2px solid var(--live-border);
+}
+.live-examples h3 {
+	margin: 0 0 0.5rem;
+	font-size: 0.8rem;
+	font-weight: 500;
+	color: var(--live-muted);
+}
+.live-examples .live-output section {
+	min-width: 0;
+	margin: 0;
+}
+.live-examples .live-output pre {
+	height: 16rem;
+	padding: 0.75rem;
+	margin: 0;
+	overflow: auto;
+	font-size: 0.75rem;
+	line-height: 1.6;
+	color: var(--live-ink);
+	overflow-wrap: anywhere;
+	white-space: pre-wrap;
+	background: var(--sl-color-bg);
+	border-radius: 0.35rem;
+}
+.live-examples progress {
+	width: 100%;
+	accent-color: var(--live-focus);
+}
+.live-examples [data-progress-text] {
+	font-size: 0.8rem;
+}
+.live-examples details {
+	padding-top: 1rem;
+	margin-top: 1.25rem;
+	border-top: 1px solid var(--live-border);
+}
+.live-examples summary {
+	cursor: pointer;
+}
+@media (max-width: 40rem) {
+	.live-examples .live-fields,
+	.live-examples .live-output {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

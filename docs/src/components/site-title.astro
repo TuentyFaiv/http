@@ -1,0 +1,12 @@
+---
+import HttpLogo from "../assets/http-logo.svg";
+import HttpSymbol from "../assets/http-symbol.svg";
+
+const { siteTitle, siteTitleHref } = Astro.locals.starlightRoute;
+---
+
+<a href={siteTitleHref} class="http-brand">
+	<HttpSymbol class="http-brand__symbol" aria-hidden="true" focusable="false" width="32" height="32" />
+	<HttpLogo aria-hidden="true" focusable="false" width="94" height="36" />
+	<span class="sr-only" translate="no">{siteTitle}</span>
+</a>

@@ -1,33 +1,68 @@
 name: Publish package
-on: 
-  push:
-    branches:
-      - main
-jobs:
+
+on:
   release:
-    name: Release
+    types:
+      - published
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish to npm
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: npm
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - name: Checkout release tag
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          node-version: '18.x'
-          registry-url: 'https://registry.npmjs.org'
+          bun-version: 1.4.2
 
-      - name: Install dependencies
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10.4.1
-          run_install: |
-            - args: [--no-frozen-lockfile, --strict-peer-dependencies]
+      - name: Install workspace dependencies
+        run: bun install --frozen-lockfile
 
-      - name: Build library
-        run: pnpm build
-
-      - name: Publish package
-        run: pnpm publish --access=publish
+      - name: Verify release tag
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          PACKAGE_VERSION="$(bun pm pkg get version | tr -d '"')"
+          test "$RELEASE_TAG" = "v$PACKAGE_VERSION"
+
+      - name: Check lint
+        run: bun run lint
+
+      - name: Check formatting
+        run: bun run format:check
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Test
+        run: bun run test
+
+      - name: Build package
+        run: bun run build
+
+      - name: Validate package contents
+        run: bun pm pack --dry-run
+
+      - name: Setup Node for npm Trusted Publishing
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Publish with npm provenance
+        run: npm publish --access public --provenance

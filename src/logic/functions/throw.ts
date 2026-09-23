@@ -1,43 +1,11 @@
-import { CustomError, ServiceError } from "../classes/errors.js";
-
-import type { HttpAlert } from "../typing/classes/http.typing.js";
-
-export function throwError(error: unknown, swal?: HttpAlert) {
-  let message = "¡Oh no!";
-  let name = "Error!";
-  let title = "Ops!";
-  let icon = "error";
-  let time = 4000;
-  if (error instanceof Error) {
-    message = error.message;
-    name = error.name;
-  }
-  if (error instanceof ServiceError) {
-    const errorData = error.view();
-    message = errorData.message;
-    name = error.name;
-    title = errorData.title;
-    icon = errorData.icon;
-    time = errorData.time;
-  }
-
-  if (!name.includes("AbortError")) {
-    swal?.({
-      title,
-      text: message,
-      icon,
-      className: "http__error-alert",
-      timer: time,
-    });
-  }
-
-  if (error instanceof ServiceError) {
-    return new ServiceError(error.view());
-  }
-
-  if (name.includes("AbortError")) {
-    return new CustomError(name, message);
-  }
-
-  return new Error(message);
+/**
+ * Normalizes a thrown value into an Error without rebuilding it, so the
+ * original type, stack and cause survive. Non-Error throwables are wrapped
+ * with the original value kept as `cause`.
+ */
+export function normalizeError(error: unknown): Error {
+	return error instanceof Error ? error : new Error("¡Oh no!", { cause: error });
 }
+
+/** @deprecated renamed to `normalizeError`; removed in a future release. */
+export const throwError = normalizeError;

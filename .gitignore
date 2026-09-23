@@ -101,6 +101,16 @@ web_modules/
 # TypeScript cache
 *.tsbuildinfo
 
+# Cloudflare local state and secrets
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# Astro / Starlight
+.astro
+docs/dist
+.bun-cache
+
 # Optional npm cache directory
 .npm
 

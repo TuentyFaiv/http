@@ -1,17 +1,9 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-  },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "node_modules",
-    "src/vite-env.d.ts",
-    "index.html",
-    "scripts",
-    "src/main.ts"
-  ]
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext"
+	},
+	"include": ["src"],
+	"exclude": ["node_modules", "src/vite-env.d.ts", "index.html", "scripts", "examples", "tests"]
 }

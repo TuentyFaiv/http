@@ -1,0 +1,13 @@
+{
+	"name": "http-client-comparison",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"measure": "bun run.mjs",
+		"setup": "bun install-isolated.mjs"
+	},
+	"devDependencies": {
+		"axios": "1.20.0"
+	},
+	"packageManager": "bun@1.4.2"
+}

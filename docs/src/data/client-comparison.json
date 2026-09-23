@@ -1,0 +1,168 @@
+{
+	"measuredAt": "2026-09-22T16:06:26.061Z",
+	"runtime": {
+		"name": "Bun",
+		"version": "1.4.2",
+		"revision": "744846f844374847c902b5e7fd59b4342a51ef99"
+	},
+	"platform": {
+		"os": "darwin",
+		"release": "27.0.0",
+		"arch": "arm64"
+	},
+	"cpu": {
+		"model": "Apple M4 Pro",
+		"logicalCores": 14
+	},
+	"methodology": {
+		"description": "In-memory client-overhead microbenchmark with no network overhead; not real-world request speed.",
+		"iterations": 2000,
+		"warmup": 500,
+		"samples": 9,
+		"concurrency": 1,
+		"sampleOrder": [
+			["http", "axios", "fetch"],
+			["axios", "fetch", "http"],
+			["fetch", "http", "axios"],
+			["http", "axios", "fetch"],
+			["axios", "fetch", "http"],
+			["fetch", "http", "axios"],
+			["http", "axios", "fetch"],
+			["axios", "fetch", "http"],
+			["fetch", "http", "axios"]
+		],
+		"statistic": "Median/min/max of sample mean microseconds per sequential GET+JSON operation; not request percentiles.",
+		"bundler": {
+			"name": "Bun.build",
+			"version": "1.4.2",
+			"target": "browser",
+			"format": "esm",
+			"minify": true,
+			"splitting": false,
+			"sourcemap": "none",
+			"gzipLevel": 9
+		},
+		"bundleScope": "Minimal exported parameterized GET+JSON fixtures, client defaults retained (http uses bare and cache:false to avoid the default singleton); includes wrapper bytes. Native fetch implementation is built into the runtime, not bundled.",
+		"timingScope": "Browser-bundled clients executed in Bun, reused instances, identical injected fetch returns a fresh Response from a pre-serialized string. Includes request processing, Response construction, JSON parsing, full payload validation and checksum. Excludes module loading, bundling and client construction. GC is not forced.",
+		"clientOptions": {
+			"http": "bare; cache:false; retry:0; timeout:0; default response cloning retained",
+			"axios": "adapter:fetch; env.fetch injected; timeout:0; responseType:json; no retry plugin",
+			"fetch": "injected transport; status check; Response.json; no retry or timeout"
+		},
+		"transport": "No sockets, DNS, TLS, server, bandwidth or network latency. Global fetch throws; each operation must call the shared injected fetch exactly once.",
+		"payload": {
+			"json": "{\"id\":42,\"title\":\"In-memory HTTP comparison\",\"active\":true,\"tags\":[\"http\",\"json\"],\"values\":[1,2,3,5,8]}",
+			"bytes": 103,
+			"encoding": "utf-8",
+			"status": 200,
+			"contentType": "application/json"
+		},
+		"dependencyCount": "Declared direct package.json dependencies only, not transitive dependencies or browser-retained modules.",
+		"localSource": {
+			"algorithm": "sha256",
+			"digest": "dc82e1f413c30657327736a98b034304cb0507918a190af82d6fb1f29a0ca41f",
+			"files": [
+				"bun.lock",
+				"package.json",
+				"src/index.ts",
+				"src/logic/classes/errors.ts",
+				"src/logic/classes/http.ts",
+				"src/logic/classes/storage.ts",
+				"src/logic/functions/hooks.ts",
+				"src/logic/functions/instance.ts",
+				"src/logic/functions/log.ts",
+				"src/logic/functions/parse.ts",
+				"src/logic/functions/progress.ts",
+				"src/logic/functions/request.ts",
+				"src/logic/functions/retry.ts",
+				"src/logic/functions/schema.ts",
+				"src/logic/functions/signal.ts",
+				"src/logic/functions/throw.ts",
+				"src/logic/functions/url.ts",
+				"src/logic/functions/validation.ts",
+				"src/logic/presets/bare.ts",
+				"src/logic/presets/conventions.ts",
+				"src/logic/presets/create.ts",
+				"src/logic/presets/envelope.ts",
+				"src/logic/presets/problem.ts",
+				"src/logic/presets/rest.ts",
+				"src/logic/typing/classes/http.typing.ts",
+				"src/logic/typing/classes/preset.typing.ts",
+				"src/logic/typing/classes/schema.typing.ts",
+				"src/logic/typing/enums/content.ts",
+				"src/logic/typing/enums/methods.ts",
+				"tsconfig.build.json",
+				"tsconfig.json",
+				"tsdown.config.ts"
+			]
+		},
+		"localBuild": {
+			"command": "bun run build",
+			"artifact": "dist/index.js",
+			"sha256": "615870cebc4adc87157f1c0829874463e64b163ece84222043ccc39dd4934d90",
+			"tsdownVersion": "0.23.0"
+		},
+		"benchmarkLockSha256": "438f0ec16bd83333b31e2bf873c1557a2d440b02e4ee7c0f712145e86c89b303",
+		"validation": {
+			"transportCalls": 55500,
+			"checksum": 5716500,
+			"expectedCalls": 55500
+		}
+	},
+	"clients": [
+		{
+			"id": "http",
+			"name": "@tuentyfaiv/http",
+			"version": "0.1.15",
+			"provenance": "local-working-tree",
+			"bundleBytes": 15458,
+			"gzipBytes": 5886,
+			"bundleSha256": "c5669f529916e85cbb91feeeb38e6385db5ebf4d931793d71e863b82d148d3ed",
+			"medianUs": 12.026458000000048,
+			"minUs": 11.61224999999996,
+			"maxUs": 15.428666499999963,
+			"samplesUs": [
+				12.197375000000022, 13.352604000000044, 11.61224999999996, 15.428666499999963, 12.468229500000007,
+				11.936541499999976, 12.026458000000048, 11.707604000000003, 11.896541999999954
+			],
+			"runtimeDependencies": 0,
+			"runtimeDependencyNames": []
+		},
+		{
+			"id": "axios",
+			"name": "axios",
+			"version": "1.20.0",
+			"provenance": "npm-published",
+			"bundleBytes": 52184,
+			"gzipBytes": 19635,
+			"bundleSha256": "e48517f499efb87d30d179d6360b64688bf52ff2f473b15ab4826108778104c4",
+			"medianUs": 13.438687499999903,
+			"minUs": 12.215604499999984,
+			"maxUs": 15.210749999999962,
+			"samplesUs": [
+				15.210749999999962, 13.282416499999954, 14.213707999999997, 13.13050000000004, 13.590916499999992,
+				12.215604499999984, 13.954646000000027, 12.881395499999996, 13.438687499999903
+			],
+			"runtimeDependencies": 4,
+			"runtimeDependencyNames": ["follow-redirects", "form-data", "https-proxy-agent", "proxy-from-env"]
+		},
+		{
+			"id": "fetch",
+			"name": "Native fetch",
+			"version": "Bun 1.4.2",
+			"provenance": "runtime-builtin",
+			"bundleBytes": 118,
+			"gzipBytes": 129,
+			"bundleSha256": "80a12fb8b47ad1bfd9f7d843d58d9f014fd64f02d9364cc43e171ac0da3098da",
+			"medianUs": 0.6247710000000097,
+			"minUs": 0.5426874999999995,
+			"maxUs": 0.7665414999999598,
+			"samplesUs": [
+				0.6428750000000036, 0.5550000000000068, 0.6545624999999973, 0.7665414999999598, 0.5452914999999621,
+				0.5426874999999995, 0.5993540000000053, 0.6247710000000097, 0.717416500000013
+			],
+			"runtimeDependencies": 0,
+			"runtimeDependencyNames": []
+		}
+	]
+}
