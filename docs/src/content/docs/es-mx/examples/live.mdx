@@ -5,7 +5,7 @@ description: Ejecuta solicitudes HTTP reales con presets, validación, reintento
 
 import LiveExamples from "../../../../components/live-examples.astro";
 
-Ejecuta una solicitud, cambia sus parámetros e inspecciona el resultado y el código real. No se envía nada al abrir la página. Los ejemplos usan la biblioteca local y la API `/http/api/examples/` de este sitio.
+Ejecuta una solicitud, cambia sus parámetros e inspecciona el resultado y el código real. No se envía nada al abrir la página. Los ejemplos usan la biblioteca local y la API `/api/examples/` de este sitio.
 
 <LiveExamples />
 
@@ -25,4 +25,4 @@ El JSON se limita a 16 KiB, los archivos a 1 MiB y las esperas a 3000 ms. Los ar
 
 Fetch nativo del navegador **no ofrece callbacks de progreso de carga**. La carga permanece indeterminada hasta recibir el comprobante del servidor; el progreso de descarga mide bytes recibidos y solo muestra un porcentaje si hay un total utilizable. Cancelar aborta la solicitud del cliente, no el trabajo que el servidor ya recibió. Salir de la página también cancela el trabajo activo.
 
-Continúa con [presets](/http/es-mx/guides/presets/), [resiliencia](/http/es-mx/guides/resilience/) y [transferencias de archivos](/http/es-mx/recipes/file-transfers/).
+Continúa con [presets](../../guides/presets/), [resiliencia](../../guides/resilience/) y [transferencias de archivos](../../recipes/file-transfers/).

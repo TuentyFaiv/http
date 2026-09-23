@@ -3,14 +3,15 @@ import starlight from "@astrojs/starlight";
 import { defineConfig, sessionDrivers } from "astro/config";
 
 export default defineConfig({
-	site: process.env.DOCS_SITE,
+	site: process.env.DOCS_SITE || "https://http.tuentyfaiv.com",
 	adapter: cloudflare({ prerenderEnvironment: "node", imageService: "compile" }),
 	// Demos do not use sessions; avoid the adapter's automatic KV provisioning.
 	session: { driver: sessionDrivers.null() },
-	base: "/http",
 	trailingSlash: "always",
 	integrations: [
 		starlight({
+			// A body stylesheet blocks parsing below the first code block on slow connections.
+			expressiveCode: { emitExternalStylesheet: false },
 			title: "@tuentyfaiv/http",
 			description: "A fetch-based http client with opinionated defaults and swappable conventions.",
 			defaultLocale: "root",

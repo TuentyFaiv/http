@@ -3,9 +3,8 @@ import DefaultLanguageSelect from "@astrojs/starlight/components/LanguageSelect.
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const isSpanish = Astro.locals.starlightRoute.lang === "es-MX";
-const alternate = isSpanish
-	? Astro.url.pathname.replace(`${base}/es-mx`, base)
-	: Astro.url.pathname.replace(base, `${base}/es-mx`);
+const pathname = Astro.url.pathname.slice(base.length);
+const alternate = isSpanish ? `${base}${pathname.slice("/es-mx".length) || "/"}` : `${base}/es-mx${pathname}`;
 ---
 
 <div class="http-language__desktop">

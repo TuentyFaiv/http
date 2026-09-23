@@ -107,7 +107,7 @@ function mount(root: HTMLElement) {
 		const current = () => active === controller && !controller.signal.aborted;
 		const entries: string[] = [];
 		const context: DemoContext = {
-			base: new URL("/http/api/examples/", globalThis.location.origin).href,
+			base: new URL(`${import.meta.env.BASE_URL}api/examples/`, globalThis.location.origin).href,
 			signal: controller.signal,
 			form: new FormData(form),
 			text,

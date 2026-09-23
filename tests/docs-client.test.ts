@@ -13,7 +13,7 @@ function context(fields: Record<string, string> = {}): DemoContext {
 		form.set(key, value);
 	}
 	return {
-		base: "https://docs.example.test/http/api/examples/",
+		base: "https://docs.example.test/api/examples/",
 		signal: new AbortController().signal,
 		form,
 		text: exampleText("en-US"),

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { handleDemo } from "../docs/src/server/demo.js";
 
 function request(action: string, init?: RequestInit): Request {
-	return new Request(`https://example.test/http/api/examples/${action}`, init);
+	return new Request(`https://example.test/api/examples/${action}`, init);
 }
 
 function streamedBody(chunks: Uint8Array[], cancel = vi.fn()): RequestInit {
@@ -92,8 +92,8 @@ describe("docs demo API", () => {
 		expect(response.status).toBe(200);
 	});
 
-	it("supports the unprefixed handler path", async () => {
-		expect((await handleDemo(new Request("https://example.test/api/examples/echo"))).status).toBe(200);
+	it("retains compatibility with the legacy prefixed handler path", async () => {
+		expect((await handleDemo(new Request("https://example.test/http/api/examples/echo"))).status).toBe(200);
 	});
 
 	it.each<Record<string, string>>([

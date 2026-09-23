@@ -5,7 +5,7 @@ description: Run real HTTP requests with presets, validation, retries and stream
 
 import LiveExamples from "../../../components/live-examples.astro";
 
-Run a request, change its inputs, then inspect the result and actual source. Nothing is sent on page load. These examples use the local library and this site's `/http/api/examples/` API.
+Run a request, change its inputs, then inspect the result and actual source. Nothing is sent on page load. These examples use the local library and this site's `/api/examples/` API.
 
 <LiveExamples />
 
@@ -25,4 +25,4 @@ JSON is limited to 16 KiB, uploads to 1 MiB, and server delays to 3000 ms. Uploa
 
 Native browser Fetch **does not provide upload progress callbacks**. Uploads stay indeterminate until the server receipt; download progress reports received bytes and only shows a percentage with a usable total. Cancel aborts the client request, not work already received by the server. Leaving the page also aborts active work.
 
-Continue with [presets](/http/guides/presets/), [resilience](/http/guides/resilience/) and [file transfers](/http/recipes/file-transfers/).
+Continue with [presets](../../guides/presets/), [resilience](../../guides/resilience/) and [file transfers](../../recipes/file-transfers/).

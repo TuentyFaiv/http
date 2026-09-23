@@ -36,7 +36,7 @@ provides the translated navigation and search UI; locale configuration is in
 Prefer a short working snippet, the relevant defaults, and important limitations over
 an exhaustive API listing. Check snippets against the source and tests. Run
 `bun run docs:build` and review both locales, language switching, and mobile navigation.
-Live examples are at `/http/examples/live/` and `/http/es-mx/examples/live/` and use
+Live examples are at `/examples/live/` and `/es-mx/examples/live/` and use
 same-origin Astro endpoints in the local Workers runtime. Keep the legacy browser
 example as a draft. See [`docs/README.md`](./docs/README.md) for deployment, API limits,
 and optional Cloudflare integrations.

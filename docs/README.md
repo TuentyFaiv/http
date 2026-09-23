@@ -1,8 +1,9 @@
 # Documentation and live examples
 
 Astro + Starlight documentation, prerendered for Cloudflare Workers Static Assets.
-Only `/http/api/examples/*` executes server code. English lives at `/http/` and
-Spanish (Mexico) at `/http/es-mx/`; the existing `/http` prefix is retained.
+Only `/api/examples/*` executes server code. English lives at `/` and Spanish
+(Mexico) at `/es-mx/` on https://http.tuentyfaiv.com. Legacy `/http` and `/http/*`
+URLs redirect to the corresponding root paths with method-preserving 308 redirects.
 
 ## Local development
 
@@ -14,8 +15,8 @@ bun install
 bun dev
 ```
 
-Open the URL printed by Astro, then `/http/examples/live/` or
-`/http/es-mx/examples/live/`. The adapter runs dynamic routes in local `workerd`.
+Open the URL printed by Astro, then `/examples/live/` or
+`/es-mx/examples/live/`. The adapter runs dynamic routes in local `workerd`.
 For a production build and local Workers preview:
 
 ```sh
@@ -37,10 +38,10 @@ not use sessions. Image optimization happens at build time, not via a paid Image
 
 1. Choose the Worker name in `wrangler.jsonc` (currently `http-docs`).
 2. Authenticate Wrangler to your Cloudflare account.
-3. Set the build environment variable **`DOCS_SITE`** to the actual public HTTPS
-   origin (your custom domain or assigned `workers.dev` origin), **without `/http`**.
-   Astro adds the base path to canonical URLs and the sitemap. Local builds may omit
-   it; they skip the sitemap rather than publish an invented production URL.
+3. The default production origin is **`https://http.tuentyfaiv.com`**. To publish
+   elsewhere, override **`DOCS_SITE`** with the public HTTPS origin, **without a path**.
+   Canonical URLs and the sitemap use this origin; there is no `/http` base path.
+   In Cloudflare dashboard builds, remove `/http` from any existing `DOCS_SITE` value.
 4. From `docs/`, run `bun run deploy` when ready to publish. This builds, then calls
    `wrangler deploy`, using the generated configuration in `dist/server/`.
 
