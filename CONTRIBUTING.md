@@ -4,7 +4,9 @@ Thanks for helping improve `fetchzen`.
 
 ## Development setup
 
-Use Bun for repository development and Node.js 22.12+ (24 recommended) for the docs tooling:
+Use Bun and Node.js 24 for repository development and builds. The published
+library supports Node.js 20+; CI builds on Node 24, then separately tests packed
+consumers on Node 20, 22, and 24 without rebuilding on those consumer runtimes:
 
 ```sh
 bun install
