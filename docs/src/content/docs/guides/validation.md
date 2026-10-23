@@ -1,53 +1,67 @@
 ---
 title: Validation
-description: Validate unwrapped response data with a Standard Schema validator.
+description: Validate response data with Zod or Valibot and infer its TypeScript type.
 sidebar:
   order: 5
 ---
 
 A TypeScript generic describes expected data; it cannot check a server response.
-Pass a [Standard Schema v1](https://standardschema.dev) validator as `schema` for
-runtime validation. Compatible versions of Zod, Valibot, and ArkType can supply
-one; install your chosen validator separately. The HTTP client adds no validation dependency.
+Pass a Zod or Valibot schema to validate the response and infer its type.
+Both support [Standard Schema v1](https://standardschema.dev), so no adapter is needed.
+Install your chosen validator in your app; the HTTP client has no validation dependency.
 
-## Validate a payload
+## With Zod
 
-This complete, dependency-free schema demonstrates the contract. In an application,
-you can replace it with a schema from your preferred validator.
+Install Zod 4:
 
-```ts
-import { Http, ServiceError } from "@tuentyfaiv/http";
-import type { InferSchemaOutput, StandardSchemaV1 } from "@tuentyfaiv/http";
-
-const userSchema: StandardSchemaV1<unknown, { id: number; name: string }> = {
-	"~standard": {
-		version: 1,
-		vendor: "app",
-		validate(value) {
-			if (
-				typeof value === "object" &&
-				value !== null &&
-				"id" in value &&
-				typeof value.id === "number" &&
-				"name" in value &&
-				typeof value.name === "string"
-			) {
-				return { value: { id: value.id, name: value.name.trim() } };
-			}
-			return { issues: [{ message: "Expected a user with a numeric id and a name" }] };
-		},
-	},
-};
-
-type User = InferSchemaOutput<typeof userSchema>;
-const api = Http.create("https://api.example.com", { cache: false });
-const { payload } = await api.get<User>("/me", { schema: userSchema });
-console.log(payload.name);
+```sh
+bun add zod@4
 ```
 
-The method currently does **not** infer its result generic from `schema`. Supply
-`User` (or your validator's output type) explicitly. A transform's output type,
-not its input type, belongs in that generic.
+```ts
+import { Http } from "fetchzen";
+import { z } from "zod";
+
+const userSchema = z.object({
+	id: z.number(),
+	name: z.string().trim(),
+});
+
+const api = Http.create("https://api.example.com", { cache: false });
+const { payload } = await api.get("/me", { schema: userSchema });
+console.log(payload.name); // Inferred as string; whitespace is trimmed.
+```
+
+## With Valibot
+
+Install Valibot 1:
+
+```sh
+bun add valibot@1
+```
+
+```ts
+import { Http } from "fetchzen";
+import * as v from "valibot";
+
+const userSchema = v.object({
+	id: v.number(),
+	name: v.pipe(v.string(), v.trim()),
+});
+
+const api = Http.create("https://api.example.com", { cache: false });
+const { payload } = await api.get("/me", { schema: userSchema });
+console.log(payload.name); // Inferred as string; whitespace is trimmed.
+```
+
+## Inferred types
+
+The result is inferred from the schema's **output**, including transforms, not
+its input. Leave generics off to use this inference; the request body is inferred
+from its argument too. Normal methods, safe methods, and `request()` follow the
+same rule. Use `InferSchemaOutput<typeof userSchema>` if you need a named output type.
+Without a guaranteed schema or explicit response mode, the inferred payload stays
+`unknown`; optional or broadly typed schema options do not establish a validated type.
 
 ## What is validated
 
@@ -57,27 +71,30 @@ With the default `envelope` preset, this response:
 { "data": { "id": 7, "name": " Ada " } }
 ```
 
-passes `{ id: 7, name: " Ada " }` to the schema. The example above returns
+passes `{ id: 7, name: " Ada " }` to the schema. Both examples return
 `{ id: 7, name: "Ada" }` as `payload`.
 
 Validation uses the preset's `unwrap` keys. `bare` and `rest` do not unwrap by default,
 so their schemas receive the whole parsed body. Async validators are supported.
-For JSON payloads, schema output replaces the unwrapped value, allowing transforms,
-coercions, and defaults supplied by your validator.
+Schema output replaces the payload for every response mode, allowing transforms,
+coercions, and defaults supplied by your validator. Output such as `undefined`,
+`null`, `false`, `0`, or `""` is preserved rather than replaced by the original body.
 
 :::note[Current scope]
-This validates response data, not request bodies. The default envelope preset builds
-text, binary, and stream results from the parsed body directly, so schema transforms
-are not applied to those returned payloads. Prefer this workflow for JSON data;
-custom presets should use their supplied `unwrap` callback.
+This validates response data, not request bodies. Parsing still happens first:
+for example, `responseType: "text"` gives the validator a string. A supplied schema
+determines the final payload type rather than the raw response mode. Custom presets
+should use their supplied `unwrap` callback to preserve validated output.
 :::
 
 ## Handle validation failures
 
-Continuing with the client and schema above:
+Continue with the client and schema from either example:
 
 ```ts
-const [error, result] = await api.safe.get<User>("/me", { schema: userSchema });
+import { ServiceError } from "fetchzen";
+
+const { data: result, error } = await api.safe.get("/me", { schema: userSchema });
 
 if (error instanceof ServiceError && error.code === "ERR_SCHEMA") {
 	console.error(error.errors);
@@ -96,3 +113,4 @@ The pipeline is **parse → preset validation (or thrower) → schema → result
 A normally parsed HTTP 500 fails before the schema runs. Invalid JSON fails even
 earlier. A custom `thrower` can change which HTTP responses reach the schema.
 See [errors](../errors/) and [custom presets](../presets/).
+Try [validation](../../examples/validation/) and [transforms](../../examples/transforms/).

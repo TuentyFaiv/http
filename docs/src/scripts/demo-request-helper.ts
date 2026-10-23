@@ -1,4 +1,4 @@
-import type { HttpPreset, StandardSchemaV1 } from "../../../src/index.js";
+import type { HttpPreset } from "../../../src/index.js";
 import type { ExampleText, Scenario } from "../i18n/examples.js";
 
 import { bare, envelope, Http, problem, rest, ServiceError } from "../../../src/index.js";
@@ -13,7 +13,8 @@ interface DemoContext {
 	text: ExampleText;
 	log: (message: string) => void;
 	result: (value: unknown) => void;
-	progress: (loaded: number, total?: number) => void;
+	progress: (loaded: number, total?: number, done?: boolean) => void;
+	download?: (blob: Blob) => void;
 }
 function field(context: DemoContext, name: string): string {
 	return String(context.form.get(name) ?? "");
@@ -51,30 +52,19 @@ async function jsonDemo(context: DemoContext) {
 		} catch {
 			throw new Error(context.text.invalidJson);
 		}
-		return await api.post("echo", JSON.stringify(body), { signal });
+		return await api.post("echo/", JSON.stringify(body), { signal });
 	}
 	return await api.get("echo", { signal, params: { name: field(context, "name") } });
 }
 async function schemaDemo(context: DemoContext) {
-	const numeric = context.form.has("invalid");
-	const schema: StandardSchemaV1 = {
-		"~standard": {
-			version: 1,
-			vendor: "live-demo",
-			validate(value) {
-				const valid =
-					typeof value === "object" &&
-					value !== null &&
-					"name" in value &&
-					typeof value.name === (numeric ? "number" : "string");
-				return valid
-					? { value }
-					: { issues: [{ message: numeric ? context.text.schemaNumber : context.text.schemaIssue }] };
-			},
-		},
-	};
+	const { nameSchema } = await validator(context);
+	const schema = nameSchema(context.text, context.form.has("invalid"));
 	const api = Http.create(context.base, { cache: false, secure: false, preset: envelope });
 	return await api.get("echo", { signal: context.signal, params: { name: field(context, "name") }, schema });
+}
+async function validator(context: DemoContext) {
+	// Load only the selected library, and only when a validation/transform demo is run.
+	return field(context, "validator") === "valibot" ? await import("./demo-valibot.js") : await import("./demo-zod.js");
 }
 async function traceDemo(context: DemoContext, retry: boolean) {
 	let attempt = 0;
@@ -114,8 +104,47 @@ async function traceDemo(context: DemoContext, retry: boolean) {
 		params: retry ? {} : { name: field(context, "name") },
 	});
 }
+async function configureDemo(context: DemoContext) {
+	// Two references share defaults, but only within this Run. Never cache credentials globally.
+	const api = client(context);
+	const shared = api;
+	api.configure({ params: { name: field(context, "name") } });
+	const remove = shared.hook("request", () => context.log(context.text.requestHook));
+	try {
+		return await shared.get("echo", { signal: context.signal });
+	} finally {
+		remove();
+	}
+}
+async function transformDemo(context: DemoContext) {
+	const { transformSchema } = await validator(context);
+	const schema = transformSchema(context.text);
+	// Inferred payload is { greeting: string; characters: number }, not the input { name: string }.
+	const api = Http.create(context.base, { cache: false, secure: false, preset: envelope });
+	const result = await api.get("echo", {
+		signal: context.signal,
+		params: { name: field(context, "name") },
+		schema,
+	});
+	const output: { greeting: string; characters: number } = result.payload;
+	return { ...result, payload: output };
+}
 async function requestDemo(scenario: Scenario, context: DemoContext): Promise<unknown> {
 	switch (scenario) {
+		case "configure":
+			return await configureDemo(context);
+		case "transform":
+			return await transformDemo(context);
+		case "safeRequest": {
+			const { data, error } = await client(context).safe.request({
+				endpoint: "status",
+				method: "GET",
+				params: { code: field(context, "status") },
+				signal: context.signal,
+			});
+			context.signal.throwIfAborted();
+			return { data, error: error ? errorResult(error, context.text) : undefined };
+		}
 		case "json":
 			return await jsonDemo(context);
 		case "schema":
@@ -125,16 +154,16 @@ async function requestDemo(scenario: Scenario, context: DemoContext): Promise<un
 		case "retry":
 			return await traceDemo(context, true);
 		case "safe": {
-			const [error, data] = await client(context).safe.get("status", {
+			const { data, error } = await client(context).safe.get("status", {
 				signal: context.signal,
 				params: { code: field(context, "status") },
 			});
 			if (error) {
 				context.signal.throwIfAborted();
 				context.log(context.text.safeError);
-				return { error: errorResult(error, context.text), data: null };
+				return { data: undefined, error: errorResult(error, context.text) };
 			}
-			return { error: null, data };
+			return { data, error: undefined };
 		}
 		case "timing":
 			return await client(context).get("delay", {

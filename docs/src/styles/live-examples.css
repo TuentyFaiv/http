@@ -1,18 +1,16 @@
 .live-examples {
-	--live-ink: var(--sl-color-white);
-	--live-muted: var(--sl-color-gray-2);
-	--live-panel: var(--http-surface);
-	--live-border: var(--http-border);
-	--live-focus: var(--sl-color-accent);
-	padding: clamp(1rem, 3vw, 1.5rem);
+	padding: clamp(1.25rem, 3vw, 2rem);
 	font-family: var(--sl-font, system-ui);
-	color: var(--live-ink);
-	background: var(--live-panel);
-	border: 1px solid var(--live-border);
-	border-radius: 0.75rem;
+	font-size: 1.125rem;
+	line-height: 1.5;
+	color: var(--fz-ink);
+	caret-color: var(--fz-violet);
+	background: var(--fz-page);
+	border: 2px solid var(--fz-border);
+	border-radius: var(--fz-radius-panel);
 }
 .live-examples > :where(p, form, .live-output) {
-	margin-top: 1rem;
+	margin-block: 1.5rem 0;
 }
 .live-examples [hidden][hidden] {
 	display: none;
@@ -21,133 +19,347 @@
 .live-examples .live-actions {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.75rem;
+	gap: 0.75rem 1.25rem;
 	align-items: center;
 }
 .live-examples header {
 	justify-content: space-between;
+	padding-block-end: 1rem;
+	border-block-end: 1px solid var(--fz-border);
 }
 .live-examples header strong {
-	font-size: 1.2rem;
-	letter-spacing: -0.025em;
+	font-family: var(--fz-font-hand, var(--sl-font));
+	font-size: 2rem;
+	font-weight: 700;
+	line-height: 1.2;
+	color: var(--fz-violet);
 }
-.live-examples header code {
-	font-size: 0.75rem;
-	color: var(--live-muted);
-	background: transparent;
+.live-examples header span {
+	color: var(--fz-muted);
+	overflow-wrap: anywhere;
 }
 .live-examples p,
 .live-examples legend {
-	font-size: 0.875rem;
+	font-size: inherit;
 }
 .live-examples fieldset {
-	min-width: 0;
+	min-inline-size: 0;
 	padding: 0;
-	margin: 1rem 0;
+	margin: 0;
 	border: 0;
 }
 .live-examples legend {
-	margin-bottom: 0.5rem;
-	color: var(--live-muted);
+	padding: 0;
+	margin-block-end: 1rem;
+	font-weight: 650;
+	color: var(--fz-ink);
 }
-.live-examples .live-fields,
-.live-examples .live-output {
+.live-examples .live-fields {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 1rem;
+	gap: 1.25rem;
 	align-items: start;
 }
 .live-examples label {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.4rem;
+	gap: 0.5rem;
 	align-items: center;
-	margin-top: 0.75rem;
-	font-size: 0.875rem;
+	min-inline-size: 0;
+	color: var(--fz-ink);
+	overflow-wrap: anywhere;
 }
 .live-examples input:not([type="checkbox"]),
 .live-examples select,
 .live-examples textarea {
-	width: 100%;
-	min-width: 0;
-	padding: 0.5rem;
+	box-sizing: border-box;
+	inline-size: 100%;
+	min-inline-size: 0;
+	min-block-size: 3.25rem;
+	padding: 0.625rem 0.875rem;
 	font: inherit;
-	color: var(--live-ink);
-	background: var(--sl-color-bg);
-	border: 1px solid var(--live-border);
-	border-radius: 0.35rem;
+	color: var(--fz-ink);
+	background: var(--fz-page);
+	border: 2px solid var(--fz-border);
+	border-radius: var(--fz-radius-control);
+}
+.live-examples :is(input, select, textarea):disabled {
+	color: var(--fz-muted);
+	-webkit-text-fill-color: var(--fz-muted);
+	cursor: not-allowed;
+	background: var(--fz-code-bg);
+	opacity: 1;
+}
+.live-examples :is(input, textarea)::placeholder {
+	color: var(--fz-muted);
+	opacity: 1;
 }
 .live-examples textarea,
 .live-examples pre {
 	font-family: var(--sl-font-mono, monospace);
+	font-size: 1rem;
+	line-height: 1.7;
+	tab-size: 2;
+}
+.live-examples textarea {
+	resize: vertical;
+}
+.live-examples .live-select {
+	position: relative;
+	display: block;
+	inline-size: 100%;
+	min-inline-size: 0;
+}
+.live-examples select {
+	padding-inline-end: 3rem;
+	appearance: none;
+	cursor: pointer;
+}
+.live-examples .live-select-icon {
+	position: absolute;
+	inset-block: 0;
+	inset-inline-end: 1rem;
+	display: grid;
+	align-items: center;
+	color: var(--fz-ink);
+	pointer-events: none;
+}
+.live-examples .live-check {
+	display: grid;
+	grid-template-columns: 1.625rem minmax(0, 1fr);
+	gap: 0.75rem;
+	min-block-size: 3.25rem;
+	cursor: pointer;
 }
 .live-examples input[type="checkbox"] {
-	accent-color: var(--live-focus);
+	grid-area: 1 / 1;
+	inline-size: 1.625rem;
+	block-size: 1.625rem;
+	margin: 0;
+	appearance: none;
+	background: var(--fz-page);
+	border: 2px solid var(--fz-border);
+	border-radius: var(--fz-radius-inline);
+}
+.live-examples input[type="checkbox"]:checked {
+	background: var(--fz-violet);
+	border-color: var(--fz-violet);
+}
+.live-examples .live-check-icon {
+	display: grid;
+	visibility: hidden;
+	grid-area: 1 / 1;
+	place-items: center;
+	color: var(--fz-page);
+	pointer-events: none;
+}
+.live-examples input[type="checkbox"]:checked + .live-check-icon {
+	visibility: visible;
+}
+.live-examples input[type="file"] {
+	padding: 0.375rem;
+	overflow-wrap: normal;
+}
+.live-examples input[type="file"]::file-selector-button {
+	min-block-size: 3.25rem;
+	padding: 0.5rem 0.75rem;
+	margin-inline-end: 0.75rem;
+	font: inherit;
+	font-weight: 650;
+	color: var(--fz-ink);
+	cursor: pointer;
+	background: var(--fz-code-bg);
+	border: 1px solid var(--fz-border);
+	border-radius: var(--fz-radius-control);
+}
+.live-examples input[type="file"]:disabled::file-selector-button {
+	color: var(--fz-muted);
+	cursor: not-allowed;
+}
+.live-examples .live-actions {
+	gap: 0.75rem;
+	margin-block-start: 1.25rem;
 }
 .live-examples button {
-	padding: 0.45rem 1.25rem;
+	display: inline-flex;
+	gap: 0.625rem;
+	align-items: center;
+	justify-content: center;
+	min-inline-size: 8rem;
+	min-block-size: 3.25rem;
+	padding: 0.625rem 1.25rem;
 	font: inherit;
-	font-weight: 600;
-	color: var(--live-panel);
+	font-weight: 650;
+	line-height: 1.3;
+	color: var(--fz-ink);
 	cursor: pointer;
-	background: var(--live-ink);
-	border: 1px solid var(--live-border);
-	border-radius: 0.35rem;
+	background: var(--fz-page);
+	border: 2px solid var(--fz-border);
+	border-radius: var(--fz-radius-control);
+}
+.live-examples button:enabled:not([aria-disabled="true"]):hover,
+.live-examples input[type="file"]:enabled::file-selector-button:hover {
+	color: var(--fz-violet);
+	border-color: var(--fz-violet);
+}
+.live-examples button:enabled:not([aria-disabled="true"]):active {
+	background: var(--fz-code-bg);
+	border-color: var(--fz-violet-pressed);
+}
+.live-examples [data-run] {
+	display: inline-grid;
+	grid-template-columns: 1.25rem auto;
+	color: var(--fz-page);
+	background: var(--fz-violet);
+	border-color: var(--fz-violet);
+}
+.live-examples [data-run]:enabled:not([aria-disabled="true"]):hover {
+	color: var(--fz-page);
+	background: var(--fz-violet-hover);
+	border-color: var(--fz-violet-hover);
+}
+.live-examples [data-run]:enabled:not([aria-disabled="true"]):active {
+	background: var(--fz-violet-pressed);
+	border-color: var(--fz-violet-pressed);
+}
+.live-examples .live-run-icon {
+	display: inline-flex;
+	grid-area: 1 / 1;
+}
+.live-examples .live-run-label {
+	grid-area: 1 / 2;
+}
+.live-examples .live-run-icon-busy,
+.live-examples [data-run][aria-disabled="true"] .live-run-icon-idle {
+	visibility: hidden;
+}
+.live-examples [data-run][aria-disabled="true"] .live-run-icon-busy {
+	visibility: visible;
+}
+.live-examples [data-run][aria-disabled="true"] {
+	cursor: wait;
 }
 .live-examples button:disabled {
+	color: var(--fz-muted);
 	cursor: not-allowed;
-	opacity: 0.45;
+	background: var(--fz-code-bg);
+	border-color: var(--fz-border);
+	opacity: 1;
 }
-.live-examples :focus-visible {
-	outline: 2px solid var(--live-focus);
-	outline-offset: 3px;
+.live-examples :is(button, summary) svg {
+	flex-shrink: 0;
 }
 .live-examples .live-note {
-	padding-left: 0.75rem;
-	color: var(--live-muted);
-	border-left: 2px solid var(--live-border);
+	max-inline-size: 70ch;
+	color: var(--fz-muted);
+}
+.live-examples .live-disclosure {
+	margin-block: 1.5rem 0;
+}
+.live-examples [data-state] {
+	min-block-size: 1.5em;
+	font-weight: 650;
+	color: var(--fz-violet);
 }
 .live-examples h3 {
-	margin: 0 0 0.5rem;
-	font-size: 0.8rem;
-	font-weight: 500;
-	color: var(--live-muted);
+	margin: 0 0 0.75rem;
+	font-family: var(--sl-font, system-ui);
+	font-size: inherit;
+	font-weight: 650;
+	color: var(--fz-ink);
 }
-.live-examples .live-output section {
-	min-width: 0;
-	margin: 0;
+.live-examples .live-output {
+	min-inline-size: 0;
 }
-.live-examples .live-output pre {
-	height: 16rem;
-	padding: 0.75rem;
+.live-examples pre {
+	min-block-size: 5rem;
+	max-block-size: 22rem;
+	padding: 1rem;
 	margin: 0;
 	overflow: auto;
-	font-size: 0.75rem;
-	line-height: 1.6;
-	color: var(--live-ink);
+	color: var(--fz-ink);
 	overflow-wrap: anywhere;
 	white-space: pre-wrap;
-	background: var(--sl-color-bg);
-	border-radius: 0.35rem;
+	scrollbar-color: var(--fz-border) var(--fz-code-bg);
+	background: var(--fz-code-bg);
+	border: 1px solid var(--fz-border);
+	border-radius: var(--fz-radius-control);
+}
+.live-examples [data-progress-area] {
+	display: grid;
+	gap: 0.5rem;
+	margin-block-start: 1rem;
 }
 .live-examples progress {
-	width: 100%;
-	accent-color: var(--live-focus);
+	inline-size: 100%;
+	block-size: 0.875rem;
+	overflow: hidden;
+	appearance: none;
+	accent-color: var(--fz-violet);
+	background: var(--fz-code-bg);
+	border: 1px solid var(--fz-border);
+	border-radius: var(--fz-radius-inline);
+}
+.live-examples progress::-webkit-progress-bar {
+	background: var(--fz-code-bg);
+}
+.live-examples progress::-webkit-progress-value {
+	background: var(--fz-violet);
+}
+.live-examples progress::-moz-progress-bar {
+	background: var(--fz-violet);
+}
+.live-examples progress:indeterminate {
+	background: var(--fz-code-bg);
+}
+.live-examples progress:indeterminate::-moz-progress-bar {
+	background: transparent;
 }
 .live-examples [data-progress-text] {
-	font-size: 0.8rem;
+	font-variant-numeric: tabular-nums;
+	color: var(--fz-muted);
 }
 .live-examples details {
-	padding-top: 1rem;
-	margin-top: 1.25rem;
-	border-top: 1px solid var(--live-border);
+	padding-block-start: 0.5rem;
+	margin-block-start: 1.5rem;
+	border-block-start: 1px solid var(--fz-border);
 }
 .live-examples summary {
+	display: flex;
+	gap: 0.625rem;
+	align-items: center;
+	min-block-size: 3.25rem;
+	font-weight: 650;
+	color: var(--fz-ink);
 	cursor: pointer;
+	list-style: none;
+}
+.live-examples summary::-webkit-details-marker {
+	display: none;
+}
+.live-examples summary svg {
+	transform: rotate(-90deg);
+}
+.live-examples details[open] > summary svg {
+	transform: none;
+}
+.live-examples summary:hover {
+	color: var(--fz-violet);
+}
+.live-examples details pre {
+	margin-block-start: 0.5rem;
 }
 @media (max-width: 40rem) {
-	.live-examples .live-fields,
-	.live-examples .live-output {
+	.live-examples .live-fields {
 		grid-template-columns: minmax(0, 1fr);
+	}
+}
+@media (forced-colors: active) {
+	.live-examples input[type="checkbox"]:checked {
+		background: Highlight;
+	}
+	.live-examples .live-check-icon {
+		color: HighlightText;
+		forced-color-adjust: none;
 	}
 }

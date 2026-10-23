@@ -56,8 +56,8 @@ describe("envelope preset", () => {
 		const error = await api.get("/users").catch((thrown: unknown) => thrown);
 
 		expect(error).toBeInstanceOf(ServiceError);
-		expect((error as ServiceError).view().errors).toEqual({ name: "required" });
-		expect((error as ServiceError).view().status).toBe(200);
+		expect((error as ServiceError).errors).toEqual({ name: "required" });
+		expect((error as ServiceError).status).toBe(200);
 	});
 
 	it("rejects on a non-ok status", async () => {
@@ -67,8 +67,8 @@ describe("envelope preset", () => {
 		const error = await api.get("/users").catch((thrown: unknown) => thrown);
 
 		expect(error).toBeInstanceOf(ServiceError);
-		expect((error as ServiceError).view().message).toBe("boom");
-		expect((error as ServiceError).view().status).toBe(500);
+		expect((error as ServiceError).message).toBe("boom");
+		expect((error as ServiceError).status).toBe(500);
 	});
 
 	it("returns files as a blob", async () => {

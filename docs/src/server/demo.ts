@@ -1,6 +1,8 @@
 const KIB = 1024;
 const JSON_LIMIT = 16_384;
+const FIELD_LIMIT = 100;
 const UPLOAD_LIMIT = KIB * KIB;
+const UPLOAD_CHUNK_LIMIT = 262_144;
 const DOWNLOAD_SIZE = 262_144;
 const DOWNLOAD_CHUNKS = 16;
 const DOWNLOAD_INTERVAL = 80;
@@ -265,8 +267,54 @@ function statusResponse(url: URL): Response {
 	return problem(code, `Demonstration of HTTP ${code}.`, RETRY_CODES.has(code) ? { "Retry-After": "1" } : undefined);
 }
 
+async function multipart(request: Request): Promise<Response> {
+	const contentType = request.headers.get("Content-Type") ?? "";
+	if (!contentType.toLowerCase().startsWith("multipart/form-data;")) {
+		return problem(UNSUPPORTED_MEDIA, "Send multipart/form-data with a boundary.");
+	}
+	// Bound actual wire bytes BEFORE invoking the native buffered parser.
+	const { bytes, chunks } = await readBody(request, UPLOAD_LIMIT + JSON_LIMIT, true);
+	const buffer = new Uint8Array(bytes);
+	let offset = 0;
+	for (const chunk of chunks) {
+		buffer.set(chunk, offset);
+		offset += chunk.byteLength;
+	}
+	let form: FormData;
+	try {
+		form = await new Response(buffer, { headers: { "Content-Type": contentType } }).formData();
+	} catch {
+		return problem(BAD_REQUEST, "Send valid multipart form data.");
+	}
+	const entries = [...form];
+	const file = form.get("file");
+	const name = form.get("name");
+	if (
+		entries.length !== 2 ||
+		!(file instanceof File) ||
+		typeof name !== "string" ||
+		name.length > FIELD_LIMIT ||
+		file.size > UPLOAD_LIMIT
+	) {
+		return problem(BAD_REQUEST, "Send one file up to 1 MiB and one name field up to 100 characters.");
+	}
+	// Never echo user filenames, file contents, or fields; nothing is persisted or logged.
+	return success({ fileBytes: file.size, fieldCharacters: name.length, parts: entries.length, stored: false });
+}
+
 async function dispatch(action: string, request: Request, url: URL): Promise<Response> {
 	switch (action) {
+		case "upload-chunk": {
+			const mediaType = request.headers.get("Content-Type")?.split(";")[0]?.trim().toLowerCase();
+			if (mediaType !== "application/octet-stream") {
+				return problem(UNSUPPORTED_MEDIA, "Send application/octet-stream.");
+			}
+			// A receipt is issued only after EOF, using actual body reads rather than claimed Content-Length.
+			const { bytes } = await readBody(request, UPLOAD_CHUNK_LIMIT, false);
+			return success({ receivedBytes: bytes, stored: false });
+		}
+		case "multipart":
+			return multipart(request);
 		case "echo":
 			return echo(request, url);
 		case "status":
@@ -321,6 +369,8 @@ const METHODS = new Map([
 	["delay", ["GET"]],
 	["retry", ["GET"]],
 	["upload", ["POST"]],
+	["upload-chunk", ["POST"]],
+	["multipart", ["POST"]],
 	["download", ["GET"]],
 	["stream", ["GET"]],
 ]);

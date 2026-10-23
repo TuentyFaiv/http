@@ -9,8 +9,8 @@ Inject an `HttpFetch` instead of replacing global fetch. This Vitest test exerci
 
 ```ts
 import { expect, it } from "vitest";
-import { Http, rest, ServiceError } from "@tuentyfaiv/http";
-import type { HttpFetch } from "@tuentyfaiv/http";
+import { Http, rest, ServiceError } from "fetchzen";
+import type { HttpFetch } from "fetchzen";
 
 it("creates a user and reports a failed request", async () => {
   const calls: { url: string; init?: RequestInit }[] = [];

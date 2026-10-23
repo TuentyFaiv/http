@@ -8,8 +8,8 @@ sidebar:
 Esta receta para el navegador mantiene el token de acceso en memoria. Supone que `/refresh` usa una cookie de renovación HttpOnly y devuelve JSON `{ "token": "..." }`. Configura las cookies, CORS y las protecciones contra CSRF en tu servidor; `credentials: "include"` no proporciona esas protecciones por sí solo.
 
 ```ts
-import { Http, rest } from "@tuentyfaiv/http";
-import type { HttpFetch } from "@tuentyfaiv/http";
+import { Http, rest } from "fetchzen";
+import type { HttpFetch } from "fetchzen";
 
 export function createSessionClient(
   initialToken: string,

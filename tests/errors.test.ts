@@ -23,7 +23,7 @@ describe("ServiceError", () => {
 		expect(error.code).toBe("ERR_TEST");
 	});
 
-	it("serializes instead of logging as an empty object", () => {
+	it("serializes useful failure details", () => {
 		expect(JSON.parse(JSON.stringify(serviceError()))).toMatchObject({
 			name: "ServiceError",
 			message: "boom",
@@ -32,17 +32,20 @@ describe("ServiceError", () => {
 		});
 	});
 
-	it("keeps the view() accessor working, without presentation fields", () => {
-		const data = serviceError().view();
+	it("keeps properties as the single source of truth, without presentation fields", () => {
+		const error = serviceError();
+		error.message = "updated";
+		error.status = 503;
 
-		expect(data).toMatchObject({
-			message: "boom",
-			status: 500,
+		expect(error.toJSON()).toMatchObject({
+			message: "updated",
+			status: 503,
 			code: "ERR_TEST",
 		});
-		expect(data).not.toHaveProperty("title");
-		expect(data).not.toHaveProperty("icon");
-		expect(data).not.toHaveProperty("time");
+		expect(error).not.toHaveProperty("view");
+		expect(error).not.toHaveProperty("title");
+		expect(error).not.toHaveProperty("icon");
+		expect(error).not.toHaveProperty("time");
 	});
 });
 

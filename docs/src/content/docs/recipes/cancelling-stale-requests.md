@@ -8,7 +8,7 @@ sidebar:
 Use one controller per search and a latest-request check. Cancellation saves work when the transport supports it; the identity check also prevents stale results from updating the UI.
 
 ```ts
-import { Http, rest } from "@tuentyfaiv/http";
+import { Http, rest } from "fetchzen";
 
 interface SearchItem {
   id: string;
@@ -63,3 +63,4 @@ Call `search(query)` when the input changes and `dispose()` when the view is rem
 An injected fetch must honor `init.signal` itself. Aborting does not guarantee that the server stopped processing the request.
 
 Related: [test with injected fetch](../testing-injected-fetch/).
+Try [timeout and cancellation](../../examples/timeout-cancellation/).

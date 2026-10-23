@@ -1,0 +1,43 @@
+---
+title: Confirmed upload
+description: Upload synthetic chunks and track server-confirmed byte receipts.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+
+Send sequential chunks with Fetch. This same-site example uses the default
+envelope and a generated 1 MiB Blob, not a personal file.
+
+```ts
+import { Http, ContentType, uploadConfirmed, type HttpUploadChunkReceipt } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false,
+});
+const body = new Blob([new Uint8Array(1024 * 1024)]);
+const result = await uploadConfirmed(body, {
+  sendChunk: async (chunk, { signal }) =>
+    (await api.post<Blob, HttpUploadChunkReceipt>("upload-chunk/", chunk, {
+      type: ContentType.APPLICATION_OCTET_STREAM, signal, retry: 0,
+    })).payload,
+  onUploadProgress: (progress) => console.log(progress),
+});
+console.log(result);
+```
+
+<LiveExamples scenario="confirmedUpload" />
+
+## What to notice
+
+Each `POST /api/examples/upload-chunk/` reads at most 256 KiB of actual raw body
+before returning `{ data: { receivedBytes, stored: false } }`. The demo counts and
+discards bytes; it does not assemble or store files. Progress starts at 0% and
+advances only on exact receipts, not when bytes are handed to Fetch.
+`done: true` means byte receipts, not storage or processing.
+
+The demo limits generated files to 1 MiB. It has no persistence or resume.
+Use synthetic data: requests pass through Cloudflare. Smaller chunks mean more
+HTTP round trips. An ordinary whole-file endpoint cannot use this convention
+without server changes.
+
+Next: [production requirements and cancellation](../../recipes/confirmed-uploads/)
+or [ordinary file upload](../file-upload/).

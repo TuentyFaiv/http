@@ -6,6 +6,3 @@
 export function normalizeError(error: unknown): Error {
 	return error instanceof Error ? error : new Error("¡Oh no!", { cause: error });
 }
-
-/** @deprecated renamed to `normalizeError`; removed in a future release. */
-export const throwError = normalizeError;

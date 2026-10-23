@@ -22,7 +22,7 @@ Solo `envelope` extrae `data` o `payload` por defecto. En `bare`, `rest` y `prob
 el tipo del payload debe describir todo el cuerpo procesado.
 
 ```ts
-import { bare, Http, rest } from "@tuentyfaiv/http";
+import { bare, Http, rest } from "fetchzen";
 
 type User = { id: number; name: string };
 
@@ -40,7 +40,30 @@ console.log(result.data.name, result.status, result.headers.get("ETag"));
 ```
 
 Usa `cache: false` aquí: de lo contrario, la misma URL base reutiliza el primer
-cliente e ignora los presets seleccionados después.
+cliente y otro preset lanza un error en lugar de cambiar la forma del resultado.
+
+### Las consultas compartidas conservan el preset
+
+El primer preset de un cliente queda fijo durante toda su vida. Al consultar un
+cliente compartido con la misma cadena exacta de URL base, el preset explícito debe
+ser el objeto original; otro objeto lanza un error aunque su `shape` sea idéntico.
+
+Omitir `preset` afirma la forma predeterminada `envelope`. Recuperar un cliente
+con otra forma sin su preset original lanza un error en lugar de prometer una
+forma de retorno incorrecta en TypeScript:
+
+```ts
+const shared = Http.create("https://api.example.com/rest", { preset: rest });
+const same = Http.create("https://api.example.com/rest", { preset: rest });
+console.log(same === shared); // true
+// Http.create("https://api.example.com/rest"); // lanza un error: no es envelope
+```
+
+Prefiere exportar la instancia tipada para reutilizarla. Para presets personalizados,
+conserva y reutiliza el objeto original: cada llamada a `extend()` crea otro objeto,
+así que repetir las mismas opciones de extensión no es una consulta compatible.
+[`configure`](../../recipes/shared-typed-client/#actualiza-los-valores-para-futuras-solicitudes)
+actualiza valores de solicitud, no presets; usa `cache: false` para otro cliente.
 
 ## Convenciones de envelope
 
@@ -60,6 +83,12 @@ Usa otro preset o personaliza las convenciones si no coinciden con tu API.
 `envelope` busca `data` y luego `payload`, y toma el primer valor distinto de
 null/undefined. No extrae campos de forma recursiva. Si ninguno existe, conserva el cuerpo.
 
+Su `message` proviene de la API cuando está disponible; de otro modo suele estar vacío.
+`success` se calcula según el preset, no es un alias de `response.ok`: un arreglo
+JSON vacío puede producir `false` con HTTP 200 sin rechazar la solicitud.
+El `response` devuelto es un `Response` de Fetch; los cuerpos JSON/texto se clonan
+por defecto para poder leerlos de nuevo. Consulta [procesamiento de respuestas](../requests-responses/).
+
 ## Extiende un preset
 
 `extend` crea un preset sin modificar el original. Cambia las claves de `unwrap`
@@ -67,8 +96,8 @@ o reemplaza la lista de convenciones; incluye la lista anterior con spread para
 conservar sus comprobaciones.
 
 ```ts
-import { envelope, Http, toErrorInit } from "@tuentyfaiv/http";
-import type { ConventionMatcher } from "@tuentyfaiv/http";
+import { envelope, Http, toErrorInit } from "fetchzen";
+import type { ConventionMatcher } from "fetchzen";
 
 const rejectWarnings: ConventionMatcher = (context, json) =>
 	json.warning ? toErrorInit(context, { message: "Advertencia de la API", errors: [] }) : undefined;
@@ -89,10 +118,10 @@ Registra la estructura mediante declaration merging y proporciona una función
 `build` tipada. Conserva `statusFallback()` salvo que quieras aceptar estados HTTP de error.
 
 ```ts
-import { createPreset, Http, statusFallback } from "@tuentyfaiv/http";
-import type { ApplyShape, ResponseContext, Unwrap } from "@tuentyfaiv/http";
+import { createPreset, Http, statusFallback } from "fetchzen";
+import type { ApplyShape, ResponseContext, Unwrap } from "fetchzen";
 
-declare module "@tuentyfaiv/http" {
+declare module "fetchzen" {
 	interface HttpShapes<T> {
 		traced: { data: T; traceId: string | null };
 	}

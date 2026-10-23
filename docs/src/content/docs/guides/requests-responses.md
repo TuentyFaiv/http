@@ -12,7 +12,7 @@ sidebar:
 The following snippets share this client and these types:
 
 ```ts
-import { ContentType, Http } from "@tuentyfaiv/http";
+import { ContentType, Http } from "fetchzen";
 
 type User = { id: number; name: string };
 type CreateUser = { name: string };
@@ -45,17 +45,17 @@ parameters are appended; an existing query key can therefore appear more than on
 
 ```ts
 type Search = { page: number; tag: string[]; active: boolean };
+const params: Search = { page: 2, tag: ["staff", "editor"], active: false };
 
-await api.get<User[], Search>("/users", {
-	params: { page: 2, tag: ["staff", "editor"], active: false },
-});
+await api.get<User[]>("/users", { params });
 // /v1/users?page=2&tag=staff&tag=editor&active=false
 ```
 
 Arrays repeat the key, objects become JSON strings, and `null`/`undefined` values
 are omitted. Instance parameters and request parameters merge by key, with the
-request winning. If you supply the result generic, also supply the parameter type
-when using `params` (the default parameter type is `undefined`).
+request winning. Query objects work with an explicit result generic without another
+generic argument. You can still pass `get<User[], Search>` for stricter parameter
+checking on that call.
 
 For a different encoding, set `paramsSerializer` on the instance or request. It
 receives a `Record<string, unknown>` and returns a query string without `?`.
@@ -85,12 +85,12 @@ is converted to `FormData`; arrays use indexed keys such as `tag[0]`.
 
 ## Headers and authentication
 
-Instance headers accept any `HeadersInit`. **Per-request headers are currently typed
-as `Headers`**, so construct them explicitly:
+Instance and per-request headers accept any `HeadersInit`: records, entry arrays,
+or `Headers` instances.
 
 ```ts
 await api.get<User>("/me", {
-	headers: new Headers({ "Accept-Language": "en-US" }),
+	headers: { "Accept-Language": "en-US" },
 	credentials: "include",
 });
 ```
@@ -121,11 +121,18 @@ without credentials instead.
 | `none` | `undefined`; skips reading the body, not status validation. |
 
 ```ts
-const { payload: csv } = await api.get<string>("/export", { responseType: "text" });
-const { payload: file } = await api.get<Blob>("/archive", { responseType: "blob" });
+const { payload: csv } = await api.get("/export", { responseType: "text" });
+const { payload: file } = await api.get("/archive", { responseType: "blob" });
 const { response } = await api.head<undefined>("/health");
 console.log(csv.length, file.size, response.status);
 ```
+
+Without explicit result generics, literal `responseType` options infer the native
+payload type shown above for normal methods, safe methods, and `request()`.
+`auto` and `json` remain `unknown` unless you supply a result type or
+[schema](../validation/). A schema's output takes precedence over the raw mode,
+including transforms. Use `responseType: "arrayBuffer"` when you need bytes
+rather than a `Blob`.
 
 `auto` recognizes JSON (including `+json`), supported text and binary media types,
 and empty responses such as 204/205. A 304 has no parsed body but still fails the
@@ -137,4 +144,34 @@ again. Binary bodies are consumed without cloning; use `clone: true` only if you
 need a second copy. `clone: false` avoids the extra branch for JSON/text too.
 Cloning large or streaming bodies can buffer substantial data if one branch is not consumed.
 
-Continue with [errors](../errors/) and [download progress](../resilience/).
+## Without a base URL
+
+```ts
+import http from "fetchzen";
+
+await http.get("https://api.example.com/health");
+```
+
+The default export has no base URL. Browser-relative endpoints work too; server
+runtimes generally require an absolute URL.
+
+## Helpers without client initialization
+
+```ts
+import { buildUrl } from "fetchzen/helpers";
+
+const url = buildUrl({
+  baseUrl: "https://api.example.com",
+  endpoint: "/users",
+  params: { page: 2 },
+});
+```
+
+The `helpers` entry exports utilities, errors, presets, conventions, and their
+types without creating the default client or initializing its registry. It has
+no default export or `Http` constructor. Its named exports have the same
+function/class/preset identities as the root entry; bundlers can remove unused
+helpers. Import clients from `fetchzen`.
+
+Continue with [errors](../errors/) and [download progress](../resilience/),
+or try [JSON](../../examples/json/) and [multipart](../../examples/multipart/).

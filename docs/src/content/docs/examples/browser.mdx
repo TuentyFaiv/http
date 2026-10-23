@@ -12,7 +12,7 @@ import RequestPlayground from "../../../components/request-playground.astro";
 import example from "../../../../../examples/browser/main.ts?raw";
 
 This example exercises the pieces that only exist in a browser: a `FormData` upload, a
-blob download with progress, hooks on the shared default instance, and `safe()` instead
+blob download with progress, hooks on the shared default instance, and `safe` methods instead
 of `try`/`catch`.
 
 <Aside type="note">
@@ -28,10 +28,15 @@ The character listing works against the public Rick and Morty api with no setup.
 upload form expects a local service on `http://localhost:5000` that accepts a
 `multipart/form-data` file at `POST /transform` and responds with an image.
 
+If the page runs on another origin, configure that local service's CORS policy for the
+page origin, including any preflight and exposed response headers.
+The server below echoes bytes; it does not convert an uploaded image to WebP.
+For focused, bounded demos without a local service, use [live examples](../live/).
+
 ## Try it in the browser
 
 The playground below makes the same kind of request as the source example. It uses the
-library's default envelope, timeout, retry, and `safe()` result tuple — no local server
+library's default envelope, timeout, retry, and `safe` data/error object — no local server
 needed.
 
 <RequestPlayground />
@@ -71,4 +76,6 @@ Bun.serve({
 	`Content-Length` is what makes `onDownloadProgress` able to report `percent`. Without
 	it you still get `loaded`, and `percent` stays `undefined` so a progress bar can fall
 	back to indeterminate.
+	A usable total also requires identity content encoding; cross-origin services must
+	expose the relevant headers through CORS. Browser Fetch does not report upload progress.
 </Aside>

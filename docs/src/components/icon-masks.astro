@@ -1,0 +1,19 @@
+---
+// Render the shared SVGs at build time so CSS-only controls cannot drift from PenIcon.
+const svgPattern = /<svg\b[^>]*>[\s\S]*?<\/svg>/;
+const declarations = await Promise.all(
+	Object.keys(Astro.slots)
+		.filter((name) => name !== "default")
+		.map(async (name) => {
+			const markup = await Astro.slots.render(name);
+			const svg = markup.match(svgPattern)?.[0];
+			if (!svg) {
+				throw new Error(`Missing SVG for the ${name} control mask`);
+			}
+			const standalone = svg.includes("xmlns=") ? svg : svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
+			return `--fz-icon-${name}: url("data:image/svg+xml,${encodeURIComponent(standalone)}");`;
+		})
+);
+---
+
+<style is:inline set:html={`:root { ${declarations.join("\n")} }`} />

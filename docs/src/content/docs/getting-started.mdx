@@ -1,6 +1,6 @@
 ---
 title: Getting started
-description: Install the client, make a typed request, and choose safe instance defaults.
+description: Install the client, make a typed request, and handle errors safely.
 sidebar:
   order: 1
 ---
@@ -9,93 +9,76 @@ import { Code, TabItem, Tabs } from "@astrojs/starlight/components";
 
 ## Install
 
+These docs target **0.2.0**, pending publication on npm's `latest` dist-tag.
+Use the commands below after the release is published.
+
+<div class="install-command">
 <Tabs syncKey="pkg">
 	<TabItem label="bun">
-		<Code code="bun add @tuentyfaiv/http" lang="sh" />
+		<Code code="bun add fetchzen" lang="sh" frame="none" />
 	</TabItem>
 	<TabItem label="npm">
-		<Code code="npm install @tuentyfaiv/http" lang="sh" />
+		<Code code="npm install fetchzen" lang="sh" frame="none" />
 	</TabItem>
 	<TabItem label="pnpm">
-		<Code code="pnpm add @tuentyfaiv/http" lang="sh" />
+		<Code code="pnpm add fetchzen" lang="sh" frame="none" />
 	</TabItem>
 </Tabs>
+</div>
 
-The package is ESM-only, with no runtime dependencies. Use Node.js 20+ or a modern
-browser, Bun, Deno, or edge runtime that provides the standard Fetch APIs.
+The package is ESM-only, with no runtime dependencies. Use Node.js 20+ or a
+modern browser, Bun, Deno, or edge runtime with the standard Fetch APIs.
 
-## Make a request
+## Make a typed request
+
+Run this in a TypeScript module. The public endpoint returns a plain JSON object,
+so choose `rest` explicitly:
 
 ```ts
-import { Http } from "@tuentyfaiv/http";
+import { Http, rest } from "fetchzen";
 
 type User = { id: number; name: string };
 
-const api = Http.create("https://api.example.com/v1", { cache: false });
-const { payload, response } = await api.get<User>("/users/1");
-
-console.log(payload.name, response.status);
-```
-
-Replace the URL with your API. The leading slash keeps the base path: this requests
-`https://api.example.com/v1/users/1`. The generic describes the expected payload;
-it does not validate the server's data. Use a [schema](../guides/validation/) for that.
-
-The default `envelope` preset returns:
-
-| Field | Meaning |
-| --- | --- |
-| `payload` | Parsed data, unwrapping the first non-null `data` or `payload` field. |
-| `response` | A Fetch `Response`; JSON and text bodies are cloned by default so it remains readable. |
-| `message` | A message selected by the preset, often the API's `message` or an empty string. |
-| `success` | A preset-derived flag, **not** an alias for `response.ok`. An empty JSON array can produce `false` on HTTP 200. |
-
-HTTP failures and recognized API failures reject the promise. Prefer
-[`safe` methods](../guides/errors/) if you want an error/result tuple.
-Use [`bare` or `rest`](../guides/presets/) if your API does not follow envelope conventions.
-
-## Configure an instance
-
-```ts
-import { Http } from "@tuentyfaiv/http";
-
-const api = Http.create("https://api.example.com/v1", {
+const api = Http.create("https://jsonplaceholder.typicode.com", {
+	preset: rest,
 	cache: false,
-	headers: { "Accept-Language": "en-US" },
-	params: { locale: "en-US" },
-	timeout: 5_000,
-	retry: 2,
 });
+const { data, status } = await api.get<User>("/users/1");
 
-await api.get("/health", { timeout: 1_000, retry: 0 });
+console.log(data.name, status);
 ```
 
-Request headers and parameters override matching instance defaults. `timeout`,
-`retry`, `secure`, `log`, and `errorMessage` can also be overridden per request.
-Pass Fetch options such as `credentials` or `signal` on the request, not to `create`.
+`rest` returns `{ data, status, headers, response }`. The generic describes the
+expected JSON; it does not validate server data. Add a
+[schema](../guides/validation/) when you need runtime validation.
 
-:::caution[Instance caching is not response caching]
-`Http.create` caches by the exact base URL string by default. Calling it again with
-that URL returns the original client and **ignores the new configuration**, including
-a different preset or credentials. Use `cache: false` for server-side request isolation,
-for tests, and whenever you need differently configured clients for the same URL.
-This option is separate from Fetch's per-request `cache` option.
-:::
+`cache: false` makes this client independent. To share one across your app,
+follow the [shared-client recipe](../recipes/shared-typed-client/).
+If you omit `preset`, the default is `envelope`, which uses `payload` instead
+of `data` and checks API failure conventions. See [presets](../guides/presets/).
 
-## Without a base URL
+## Handle errors without try/catch
+
+Using the same `api`, call `safe.get` with the same arguments:
 
 ```ts
-import http from "@tuentyfaiv/http";
+const { data: result, error } = await api.safe.get<User>("/users/1");
 
-await http.get("https://api.example.com/health");
+if (error) {
+	console.error(error.message);
+} else {
+	console.log(result.data.name);
+}
 ```
 
-The default export has no base URL. Browser-relative endpoints also work; server
-runtimes generally require an absolute URL.
+Safe methods return either a preset-shaped `data` result or an `Error`.
+They still run validation and error hooks. Ordinary methods reject on failure;
+see [errors](../guides/errors/) to inspect HTTP failures or use `try/catch`.
 
 ## Next steps
 
-- [Requests and responses](../guides/requests-responses/): methods, query parameters, bodies, and parsing.
-- [Presets](../guides/presets/): choose the result shape and failure conventions.
-- [Hooks](../guides/hooks/): observe or replace requests and responses.
-- [Timeouts, retries, and progress](../guides/resilience/): cancellation and transport behavior.
+- [Requests and responses](../guides/requests-responses/): URLs, bodies, and parsing.
+- [Share a typed client](../recipes/shared-typed-client/): defaults, configuration, and SSR isolation.
+- [Validation](../guides/validation/): check and transform server data.
+- [Timeouts and retries](../guides/resilience/): cancellation and retry behavior.
+- Try the focused [JSON](../examples/json/) and [safe errors](../examples/safe-errors/) examples.

@@ -9,7 +9,7 @@ Los hooks se registran en un cliente, se ejecutan en orden de registro y pueden
 ser síncronos o asíncronos. No son opciones de configuración por solicitud.
 
 ```ts
-import { Http } from "@tuentyfaiv/http";
+import { Http } from "fetchzen";
 
 const api = Http.create("https://api.example.com", {
 	cache: false,
@@ -46,7 +46,7 @@ await api.get("/users");
 
 No devolver nada conserva el contexto, la respuesta o el error actual. Los hooks
 de error no recuperan un resultado exitoso: la solicitud sigue rechazándose (o
-regresa el error en la tupla de `safe`). Los hooks de solicitud se ejecutan una vez,
+regresa el error en el objeto de `safe`). Los hooks de solicitud se ejecutan una vez,
 no en cada reintento. Los de respuesta ven la respuesta final, no las intermedias de los reintentos.
 
 :::caution[No consumas la respuesta al observarla]
@@ -68,6 +68,18 @@ const off = api.hook("request", ({ init }) => {
 await api.get("/users");
 off();
 ```
+
+Cada función de cancelación elimina únicamente su propio registro, incluso si el
+mismo callback se registró varias veces. Llamarla de nuevo no hace nada. Las solicitudes
+que ya están en curso conservan su instantánea original de hooks.
+
+Las consultas compartidas con `Http.create` reutilizan el cliente y sus hooks;
+la inicialización posterior no los reemplaza ni agrega otros. Usa `hook()` y su
+función de cancelación, no `configure({ hooks: ... })`.
+Cada solicitud toma una instantánea de los valores y **todas las listas de hooks
+al comenzar**, incluidos los hooks de respuesta/error. Los cambios afectan solo
+solicitudes posteriores, no el estado mutable de los callbacks. Para hooks por
+usuario en SSR, usa clientes privados con `cache: false`, no estado global o de módulo.
 
 ## Devuelve una respuesta local
 
@@ -94,7 +106,7 @@ Los registros son independientes de los hooks y están desactivados por defecto.
 Actívalos con `log: true` en la instancia o solicitud. Configura un logger propio en la instancia:
 
 ```ts
-import { Http } from "@tuentyfaiv/http";
+import { Http } from "fetchzen";
 
 const api = Http.create("https://api.example.com", {
 	cache: false,
@@ -120,3 +132,4 @@ ocultar; usa `redactHeaders` al registrar encabezados y aplica tus propias regla
 
 Consulta [errores](../errors/) para conocer su identidad y
 [reintentos](../resilience/) para revisar su comportamiento.
+Prueba el [ejemplo de hooks](../../examples/hooks/).

@@ -2,8 +2,11 @@
 import DefaultFooter from "@astrojs/starlight/components/Footer.astro";
 
 import { homepageLocale } from "../i18n/home";
+import BrandMark from "./brand-mark.astro";
+import PenIcon from "./pen-icon.astro";
 
 const { t, href, isHome } = homepageLocale(Astro.url.pathname);
+const iconSize = 20;
 ---
 
 {isHome ? (
@@ -11,12 +14,14 @@ const { t, href, isHome } = homepageLocale(Astro.url.pathname);
 		<div class="home-footer__main">
 			<div class="home-footer__identity">
 				<a class="home-footer__name" href={href()}>
-					@tuentyfaiv/http
+					<BrandMark size={36} />
+					<span class="home-footer__wordmark" aria-hidden="true">fetchzen ~</span>
+					<span class="home-sr-only">FetchZen</span>
 				</a>
 				<p>
-					{t("A complete HTTP client.")}
+					{t("Typed HTTP. A little less noise.")}
 					<br />
-					{t("Still fetch underneath.")}
+					{t("Built on native Fetch. Made for your conventions.")}
 				</p>
 			</div>
 			<nav aria-label={t("Footer documentation")}>
@@ -28,13 +33,13 @@ const { t, href, isHome } = homepageLocale(Astro.url.pathname);
 			<nav aria-label={t("Footer project")}>
 				<h2>{t("Project")}</h2>
 				<a href="https://github.com/TuentyFaiv/http">
-					GitHub <span aria-hidden="true">↗</span>
+					GitHub <PenIcon name="github" size={iconSize} />
 				</a>
-				<a href="https://www.npmjs.com/package/@tuentyfaiv/http">
-					npm <span aria-hidden="true">↗</span>
+				<a href="https://www.npmjs.com/package/fetchzen">
+					npm <PenIcon name="external-link" size={iconSize} />
 				</a>
 				<a href="https://github.com/TuentyFaiv/http/issues">
-					{t("Report an issue")} <span aria-hidden="true">↗</span>
+					{t("Report an issue")} <PenIcon name="external-link" size={iconSize} />
 				</a>
 			</nav>
 		</div>

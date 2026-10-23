@@ -1,0 +1,31 @@
+---
+title: Carga de archivos
+description: Envía un archivo como cuerpo sin transformar.
+---
+
+import LiveExamples from "../../../../components/live-examples.astro";
+
+Envía un `File` directamente. Este código de navegador crea un archivo sintético pequeño para la API de demo.
+
+```ts
+import { Http, bare, ContentType } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: bare,
+});
+const file = new File(["Hello"], "demo.txt", { type: "text/plain" });
+console.log(await api.post("upload/", file, {
+  type: ContentType.APPLICATION_OCTET_STREAM,
+}));
+```
+
+<LiveExamples scenario="upload" />
+
+## Qué observar
+
+El demo acepta hasta 1 MiB, cuenta bytes y los descarta sin almacenarlos.
+Fetch del navegador no ofrece callbacks de progreso de carga: la espera es indeterminada hasta el comprobante.
+Usa tu propio endpoint de carga en una aplicación.
+
+Para progreso confirmado opcional, usa un [endpoint de fragmentos compatible](../confirmed-upload/), no este endpoint de archivos completos.
+
+Continúa con [multipart](../multipart/) o [transferencias de archivos](../../recipes/file-transfers/).

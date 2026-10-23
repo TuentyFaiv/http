@@ -1,0 +1,34 @@
+---
+title: Reintentos
+description: Reintenta fallos transitorios y respeta Retry-After.
+---
+
+import LiveExamples from "../../../../components/live-examples.astro";
+
+Este endpoint de demo falla dos veces antes de responder con éxito. Su encabezado de intento es un protocolo del demo, no un requisito para tu API.
+
+```ts
+import { Http, envelope } from "fetchzen";
+let attempt = 0;
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+  fetch: (input, init) => {
+    const headers = new Headers(init?.headers);
+    headers.set("X-Demo-Attempt", String(++attempt));
+    return globalThis.fetch(input, { ...init, headers });
+  },
+});
+console.log(await api.get("retry", {
+  retry: { attempts: 2, respectRetryAfter: true },
+}));
+```
+
+<LiveExamples scenario="retry" />
+
+## Qué observar
+
+Dos reintentos permiten tres envíos. Los intentos 1 y 2 devuelven 503 con `Retry-After: 0`.
+Los hooks se ejecutan una vez por solicitud lógica; el transporte, por envío.
+Considera la idempotencia antes de reintentar escrituras.
+
+Continúa con [hooks](../hooks/) o [resiliencia](../../guides/resilience/).

@@ -1,49 +1,191 @@
+/* Self-host the Latin subsets used by English and es-MX; no third-party font requests. */
+@font-face {
+	font-family: "Caveat Variable";
+	font-style: normal;
+	font-weight: 400 700;
+	font-display: swap;
+	src: url("@fontsource-variable/caveat/files/caveat-latin-wght-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "IBM Plex Mono";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "IBM Plex Mono";
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url("@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Source Sans 3 Variable";
+	font-style: normal;
+	font-weight: 200 900;
+	font-display: swap;
+	src: url("@fontsource-variable/source-sans-3/files/source-sans-3-latin-wght-normal.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: "Source Sans 3 Variable";
+	font-style: italic;
+	font-weight: 200 900;
+	font-display: swap;
+	src: url("@fontsource-variable/source-sans-3/files/source-sans-3-latin-wght-italic.woff2") format("woff2");
+}
+
 :root {
-	--sl-font: "Helvetica Neue", "Segoe UI", Arial, sans-serif;
-	--sl-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+	--fz-font-hand: "Caveat Variable", cursive;
+	--fz-font-display: var(--fz-font-hand);
+	--fz-radius-control: 0.375rem;
+	--fz-radius-panel: 0.75rem;
+	--fz-radius-inline: 0.25rem;
+	--sl-font: "Source Sans 3 Variable", "Segoe UI", sans-serif;
+	--sl-font-mono: "IBM Plex Mono", Consolas, monospace;
 	--http-content-width: 72rem;
 	--sl-content-width: var(--http-content-width);
-	--sl-color-white: rgb(238 238 239);
-	--sl-color-gray-1: rgb(222 222 225);
-	--sl-color-gray-2: rgb(184 185 191);
-	--sl-color-gray-3: rgb(148 150 159);
-	--sl-color-gray-4: rgb(98 100 109);
-	--sl-color-gray-5: rgb(59 61 68);
-	--sl-color-gray-6: rgb(41 43 49);
-	--sl-color-black: rgb(32 33 36);
-	--sl-color-accent-low: rgb(48 58 81);
-	--sl-color-accent: rgb(167 185 229);
-	--sl-color-accent-high: rgb(195 207 238);
-	--sl-color-bg-nav: var(--sl-color-black);
-	--sl-color-bg-sidebar: var(--sl-color-black);
-	--http-surface: rgb(38 39 44);
-	--http-border: rgb(59 61 68);
+	--fz-page: rgb(15 18 32);
+	--fz-ink: rgb(248 248 255);
+	--fz-violet: rgb(212 181 255);
+	--fz-violet-hover: rgb(225 202 255);
+	--fz-violet-pressed: rgb(198 163 245);
+	--fz-saffron: rgb(255 210 122);
+	--fz-code-bg: rgb(10 12 21);
+	--fz-code-saffron: rgb(255 210 122);
+	--fz-code-teal: rgb(127 231 215);
+	--fz-muted: rgb(196 191 211);
+	--fz-border: rgb(139 134 163);
+	--sl-color-white: var(--fz-ink);
+	--sl-color-gray-1: var(--fz-ink);
+	--sl-color-gray-2: var(--fz-muted);
+	--sl-color-gray-3: var(--fz-muted);
+	--sl-color-gray-4: var(--fz-border);
+	--sl-color-gray-5: var(--fz-border);
+	--sl-color-gray-6: var(--fz-code-bg);
+	--sl-color-black: var(--fz-page);
+	--sl-color-accent-low: var(--fz-code-bg);
+	--sl-color-accent: var(--fz-violet);
+	--sl-color-accent-high: var(--fz-violet);
+	--sl-color-text: var(--fz-ink);
+	--sl-color-text-accent: var(--fz-violet);
+	--sl-color-bg: var(--fz-page);
+	--sl-color-bg-nav: var(--fz-page);
+	--sl-color-bg-sidebar: var(--fz-page);
+	--sl-color-hairline: var(--fz-border);
+	--sl-color-hairline-light: var(--fz-border);
+	--http-surface: var(--fz-code-bg);
+	--http-border: var(--fz-border);
+	accent-color: var(--fz-violet);
+	caret-color: var(--fz-violet);
+	color-scheme: dark;
+	scrollbar-color: var(--fz-border) var(--fz-page);
 }
 
 :root[data-theme="light"] {
-	--sl-color-white: rgb(32 33 36);
-	--sl-color-gray-1: rgb(48 50 56);
-	--sl-color-gray-2: rgb(80 82 91);
-	--sl-color-gray-3: rgb(102 105 115);
-	--sl-color-gray-4: rgb(147 150 159);
-	--sl-color-gray-5: rgb(201 203 210);
-	--sl-color-gray-6: rgb(237 238 241);
-	--sl-color-gray-7: rgb(245 245 247);
-	--sl-color-black: rgb(252 252 253);
-	--sl-color-accent-low: rgb(232 237 247);
-	--sl-color-accent: rgb(70 99 166);
-	--sl-color-accent-high: rgb(48 71 124);
-	--http-surface: rgb(245 245 247);
-	--http-border: rgb(222 223 229);
+	--fz-page: rgb(249 249 255);
+	--fz-ink: rgb(21 19 43);
+	--fz-violet: rgb(81 42 120);
+	--fz-violet-hover: rgb(68 32 99);
+	--fz-violet-pressed: rgb(53 22 79);
+	--fz-saffron: rgb(122 72 0);
+	--fz-code-bg: rgb(234 234 244);
+	--fz-code-saffron: rgb(112 64 0);
+	--fz-code-teal: rgb(0 78 78);
+	--fz-muted: rgb(73 68 89);
+	--fz-border: rgb(121 115 139);
+	--sl-color-gray-7: var(--fz-page);
+	color-scheme: light;
 }
 
 body {
-	background: var(--sl-color-bg);
+	font-size: 1.125rem;
+	line-height: 1.6;
+	color: var(--fz-ink);
+	background: var(--fz-page);
+}
+
+::selection {
+	color: var(--fz-page);
+	background: var(--fz-violet);
+}
+
+:where(a) {
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+
+:where(a:hover) {
+	text-decoration-thickness: 2px;
+}
+
+:where(button, input, select, textarea) {
+	font: inherit;
+}
+
+/* The page-colored gap separates the ring from both filled and outlined controls. */
+:focus-visible {
+	outline: 3px solid var(--fz-saffron);
+	outline-offset: 4px;
+	box-shadow: 0 0 0 4px var(--fz-page);
+}
+
+:where(input, textarea)::placeholder {
+	color: var(--fz-muted);
+	opacity: 1;
 }
 
 header.header {
 	background: var(--sl-color-bg);
 	border-bottom-color: var(--http-border);
+}
+
+header.header .title-wrapper {
+	padding: 7px;
+	margin: -7px;
+}
+
+/* Keep all reading and code surfaces in the selected theme, including Starlight notices. */
+.sl-markdown-content .starlight-aside {
+	color: var(--fz-ink);
+	background: var(--fz-code-bg);
+	border-color: var(--fz-border);
+	border-inline-start-width: 1px;
+}
+
+.sl-markdown-content .starlight-aside__title {
+	color: var(--fz-code-saffron);
+}
+
+.sl-markdown-content :where(pre, code) {
+	font-family: var(--sl-font-mono);
+	font-size: 1rem;
+}
+
+.sl-markdown-content :where(th, td) {
+	border-color: var(--fz-border);
+}
+
+.sl-markdown-content :where(a) {
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+
+.expressive-code .frame .copy button:focus-visible {
+	outline: 3px solid var(--fz-saffron);
+	outline-offset: 4px;
+	box-shadow: 0 0 0 4px var(--fz-code-bg);
+}
+
+@media (forced-colors: active) {
+	:focus-visible {
+		outline-color: Highlight;
+		box-shadow: none;
+	}
 }
 
 .http-language__mobile {
@@ -59,8 +201,30 @@ starlight-lang-select select {
 		display: flex;
 	}
 
-	header.header .right-group > :is(.social-icons, starlight-theme-select),
+	header.header .right-group > .social-icons,
 	header.header .http-language__desktop {
+		display: none;
+	}
+
+	header.header .right-group {
+		gap: 0.25rem;
+	}
+
+	header.header starlight-theme-select label {
+		width: 2.75rem;
+	}
+
+	header.header starlight-theme-select select {
+		width: 2.75rem;
+		padding: 0;
+		color: transparent;
+	}
+
+	header.header starlight-theme-select .label-icon {
+		inset-inline-start: 0.75rem;
+	}
+
+	header.header starlight-theme-select .caret {
 		display: none;
 	}
 
@@ -68,7 +232,7 @@ starlight-lang-select select {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		min-width: 2rem;
+		min-width: 2.75rem;
 		min-height: 2.75rem;
 		font-family: var(--sl-font-mono);
 		font-size: 0.8125rem;
@@ -77,8 +241,31 @@ starlight-lang-select select {
 	}
 }
 
+@media (max-width: 30rem) {
+	header.header {
+		--sl-nav-gap: 0.25rem;
+		--sl-nav-pad-x: 0.5rem;
+	}
+
+	header.header .http-brand {
+		gap: 0.25rem;
+	}
+
+	header.header .http-brand__name {
+		font-size: 1.75rem;
+	}
+
+	:root:not([data-has-sidebar]) header.header {
+		padding-inline-end: var(--sl-nav-pad-x);
+	}
+
+	[data-has-sidebar] header.header .http-brand__name {
+		display: none;
+	}
+}
+
 .http-language__mobile:focus-visible {
-	outline: 2px solid var(--sl-color-accent);
+	outline: 3px solid var(--fz-saffron);
 	outline-offset: 4px;
 }
 
@@ -87,36 +274,102 @@ starlight-lang-select select {
 	gap: 0.625rem;
 	align-items: center;
 	width: fit-content;
+	min-width: 2.75rem;
 	min-height: 2.75rem;
-	color: var(--sl-color-white);
-}
-
-.http-brand svg {
-	display: block;
-	width: 5.875rem;
-	height: auto;
+	color: var(--fz-violet);
+	text-decoration: none;
 }
 
 .http-brand .http-brand__symbol {
+	display: block;
 	flex-shrink: 0;
-	width: 2rem;
+	width: 2.25rem;
+	height: 2.25rem;
+}
+
+.http-brand__name {
+	font-family: var(--fz-font-display);
+	font-size: 2.25rem;
+	font-weight: 700;
+	line-height: 1.2;
+	letter-spacing: -0.02em;
+	white-space: nowrap;
 }
 
 .http-brand:hover {
-	color: var(--sl-color-gray-2);
+	color: var(--fz-violet-hover);
 }
 
-.sl-markdown-content h2,
-.sl-markdown-content h3 {
-	font-weight: 500;
+h1,
+h2,
+h3 {
+	font-family: var(--sl-font);
+	text-wrap: balance;
+}
+
+[data-has-sidebar] .content-panel h1 {
+	font-size: clamp(2.2rem, 4vw, 3.25rem);
+	font-weight: 650;
+	line-height: 1.15;
 	letter-spacing: -0.025em;
+}
+
+.sl-markdown-content > :where(p, ul, ol) {
+	max-width: 72ch;
+	font-size: 1.125rem;
+	line-height: 1.75;
+}
+
+.sl-markdown-content > .sl-heading-wrapper :where(h2, h3) {
+	font-weight: 650;
+	letter-spacing: -0.025em;
+}
+
+.sidebar-content a[aria-current="page"] {
+	font-weight: 700;
+	color: var(--sl-color-text-accent);
+	text-decoration: underline;
+	background: var(--sl-color-accent-low);
+}
+
+.sidebar-content summary {
+	font-family: var(--sl-font);
+	font-size: 1rem;
+	font-weight: 650;
+}
+
+.sidebar-content a {
+	min-height: 2.75rem;
+}
+
+.sl-markdown-content > .expressive-code {
+	margin-block: 1.5rem;
+}
+
+.sl-markdown-content starlight-tabs .tablist-wrapper {
+	padding: 7px;
+}
+
+.sl-markdown-content starlight-tabs [role="tab"] {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 52px;
+	padding: 0.65rem 1rem;
+	font-size: 1.125rem;
+	color: var(--fz-muted);
+}
+
+.sl-markdown-content starlight-tabs [role="tab"][aria-selected="true"] {
+	font-weight: 650;
+	color: var(--fz-violet);
 }
 
 .sl-markdown-content :not(pre) > code {
 	color: var(--sl-color-white);
 	background: var(--http-surface);
 	border: 1px solid var(--http-border);
-	border-radius: 0.2rem;
+	border-radius: var(--fz-radius-inline);
 }
 
 .request-playground {
@@ -125,7 +378,7 @@ starlight-lang-select select {
 	color: var(--sl-color-text);
 	background: var(--http-surface);
 	border: 1px solid var(--http-border);
-	border-radius: 0.4rem;
+	border-radius: var(--fz-radius-panel);
 }
 
 .request-playground__header {
@@ -157,7 +410,7 @@ starlight-lang-select select {
 	font-size: 0.75rem;
 	white-space: nowrap;
 	border: 1px solid var(--http-border);
-	border-radius: 0.25rem;
+	border-radius: var(--fz-radius-inline);
 }
 
 .request-playground__body {
@@ -184,7 +437,7 @@ starlight-lang-select select {
 	min-height: 2.75rem;
 	font: inherit;
 	border: 1px solid var(--http-border);
-	border-radius: 0.3rem;
+	border-radius: var(--fz-radius-control);
 }
 
 .request-playground__form input {
@@ -208,7 +461,7 @@ starlight-lang-select select {
 .http-brand:focus-visible,
 .request-playground__form button:focus-visible,
 .request-playground__form input:focus-visible {
-	outline: 2px solid var(--sl-color-accent);
+	outline: 3px solid var(--fz-saffron);
 	outline-offset: 4px;
 }
 
@@ -224,7 +477,7 @@ starlight-lang-select select {
 	white-space: pre-wrap;
 	background: var(--sl-color-bg);
 	border: 1px solid var(--http-border);
-	border-radius: 0.3rem;
+	border-radius: var(--fz-radius-control);
 }
 
 @media (max-width: 40rem) {

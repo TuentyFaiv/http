@@ -1,0 +1,31 @@
+---
+title: Hooks
+description: Observe the request lifecycle.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+
+Add lifecycle callbacks to a client for this site's demo API.
+
+```ts
+import { Http, envelope } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+  hooks: {
+    request: [() => { console.log("request"); }],
+    response: [(response) => { console.log(response.status); }],
+    error: [() => { console.log("error"); }],
+  },
+});
+await api.get("echo", { params: { name: "Ada" }, retry: 0 });
+```
+
+<LiveExamples scenario="hooks" />
+
+## What to notice
+
+Request hooks surround a logical request, not each transport attempt.
+The panel logs sends separately using an injected Fetch transport.
+`echo` is a demo endpoint, not a service supplied by the library.
+
+Next: [retries](../retries/) or [configuration](../configuration/).

@@ -1,0 +1,43 @@
+---
+title: Streaming
+description: Consume a response stream without buffering the whole body.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+
+Consume and count raw bytes from this site's demo stream. This minimal browser snippet does not parse NDJSON.
+
+```ts
+import { Http, bare } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: bare,
+});
+const stream = await api.get<ReadableStream<Uint8Array> | null>("stream", {
+  responseType: "stream",
+});
+if (!stream) throw new Error("No response stream");
+const reader = stream.getReader();
+let bytes = 0;
+try {
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    bytes += value.byteLength;
+    if (bytes > 65_536) throw new Error("Stream limit exceeded");
+    console.log(bytes);
+  }
+} finally {
+  try { await reader.cancel(); }
+  finally { reader.releaseLock(); }
+}
+```
+
+<LiveExamples scenario="stream" />
+
+## What to notice
+
+The panel adds bounded application-level NDJSON parsing for six records, handling split UTF-8, split lines and decoder flush.
+NDJSON is not a built-in client parser; chunks are not necessarily complete records.
+Stream support depends on the runtime. Streamed **request bodies** are separate: the client supplies `duplex: "half"` when omitted, but some browsers reject them.
+
+Next: [download](../download/) or [file transfers](../../recipes/file-transfers/).

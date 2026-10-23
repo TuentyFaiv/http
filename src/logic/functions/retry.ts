@@ -2,13 +2,13 @@ import type { HttpMethods } from "../typing/enums/methods.js";
 
 import { HttpMethod } from "../typing/enums/methods.js";
 
-const IDEMPOTENT: HttpMethods[] = [
+const IDEMPOTENT: HttpMethods[] = /* @__PURE__ */ (() => [
 	HttpMethod.GET,
 	HttpMethod.HEAD,
 	HttpMethod.PUT,
 	HttpMethod.DELETE,
 	HttpMethod.OPTIONS,
-];
+])();
 
 const STATUS_REQUEST_TIMEOUT = 408;
 const STATUS_TOO_MANY_REQUESTS = 429;
@@ -118,8 +118,21 @@ export function delayFor(options: ResolvedRetry, attempt: number, response?: Res
 	return options.delay(attempt, response) ?? backoff(attempt);
 }
 
-export function wait(milliseconds: number): Promise<void> {
-	return new Promise((resolve) => {
-		setTimeout(resolve, milliseconds);
+/** Backoff belongs to the request: aborting also ends the wait and releases its timer. */
+export function wait(milliseconds: number, signal?: AbortSignal | null): Promise<void> {
+	return new Promise((resolve, reject) => {
+		signal?.throwIfAborted();
+
+		const onAbort = () => {
+			clearTimeout(timer);
+			signal?.removeEventListener("abort", onAbort);
+			reject(signal?.reason);
+		};
+		const timer = setTimeout(() => {
+			signal?.removeEventListener("abort", onAbort);
+			resolve();
+		}, milliseconds);
+
+		signal?.addEventListener("abort", onAbort, { once: true });
 	});
 }

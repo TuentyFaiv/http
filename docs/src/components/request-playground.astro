@@ -68,7 +68,7 @@
 				status.textContent = "Requesting…";
 			}
 
-			const [error, result] = await api.safe.get<Character>(`/character/${id}`, {
+			const { data: result, error } = await api.safe.get<Character>(`/character/${id}`, {
 				timeout: 5000,
 				retry: 2,
 			});

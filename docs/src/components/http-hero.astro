@@ -3,19 +3,22 @@ import { Code, TabItem, Tabs } from "@astrojs/starlight/components";
 
 import "../styles/home.css";
 
+import packageInfo from "../../../package.json" with { type: "json" };
 import comparison from "../data/client-comparison.json" with { type: "json" };
 import { homepageLocale } from "../i18n/home";
+import PenIcon from "./pen-icon.astro";
 
 const own = comparison.clients.find((client) => client.id === "http");
 if (!own) {
 	throw new Error("The homepage requires a measured HTTP client result.");
 }
 const bytesPerKilobyte = 1000;
+const iconSize = 20;
 const { t, href, locale } = homepageLocale(Astro.url.pathname);
 const examples = [
 	{
 		label: t("Typed results"),
-		code: `import { Http } from "@tuentyfaiv/http";
+		code: `import { Http } from "fetchzen";
 
 type User = { id: number; name: string };
 
@@ -31,29 +34,30 @@ const { payload } = await api.get<User>("/me");
 	},
 	{
 		label: t("Safe errors"),
-		code: `import { Http } from "@tuentyfaiv/http";
+		code: `import { Http } from "fetchzen";
 
 type User = { id: number; name: string };
 const api = Http.create("https://api.example.com");
 
-const [error, result] = await api.safe.get<User>("/me");
+const { data, error } = await api.safe.get<User>("/me");
 
 if (error) {
-  console.error(error.status, error.message);
+  console.error(error.message);
 } else {
-  console.log(result.payload.name);
+  console.log(data.payload.name);
 }`,
-		note: t("Choose an error/result tuple or the throwing API."),
+		note: t("Choose a data/error object or the throwing API."),
 		link: "guides/errors/",
 	},
 	{
 		label: t("Your conventions"),
-		code: `import { Http, bare } from "@tuentyfaiv/http";
+		code: `import { Http, bare } from "fetchzen";
 
 type User = { id: number; name: string };
 
 const api = Http.create("https://api.example.com", {
   preset: bare,
+  cache: false,
 });
 
 const user = await api.get<User>("/me");
@@ -68,28 +72,31 @@ const user = await api.get<User>("/me");
 
 <div class="home-hero home-surface">
 	<div class="home-hero__intro">
-		<p class="home-package">@tuentyfaiv/http <span>TypeScript · ESM</span></p>
 		<h1 id="_top" data-page-title>
-			{t("A complete HTTP client.")}<br><span>{t("Still")} <code>fetch</code> {t("underneath.")}</span>
+			{t("Typed requests.")}<br><span>{t("Clear results.")}</span>
 		</h1>
 		<p class="home-lead">
 			{t(
-	"Typed responses, retries, validation, and hooks. The parts you keep rebuilding around a request, in one dependency-free client."
+	"One reusable client for your API. Typed results, thoughtful defaults, and room for your own conventions."
 )}
 		</p>
+		<p class="home-package">{t("TypeScript-first. Fetch-native.")}</p>
 		<div class="home-actions">
-			<a class="home-button" href={href("getting-started/")}>{t("Get started")} <span aria-hidden="true">↗</span></a>
-			<a class="home-text-link" href="#comparisons">{t("See the comparisons")} <span aria-hidden="true">↓</span></a>
+			<a class="home-button" href={href("getting-started/")}
+				>{t("Get started")} <PenIcon name="arrow-right" size={iconSize} /></a
+			>
+			<a class="home-text-link" href={href("examples/live/")}
+				>{t("Try a live example")} <PenIcon name="arrow-right" size={iconSize} /></a
+			>
 		</div>
-		<div class="home-install">
+		<div class="home-install install-command">
 			<Tabs>
-				<TabItem label="Bun"><Code code="bun add @tuentyfaiv/http" lang="sh" frame="none" locale={locale} /></TabItem>
-				<TabItem label="npm"
-					><Code code="npm install @tuentyfaiv/http" lang="sh" frame="none" locale={locale} /></TabItem
-				>
-				<TabItem label="pnpm"><Code code="pnpm add @tuentyfaiv/http" lang="sh" frame="none" locale={locale} /></TabItem>
+				<TabItem label="Bun"><Code code="bun add fetchzen" lang="sh" frame="none" locale={locale} /></TabItem>
+				<TabItem label="npm"><Code code="npm install fetchzen" lang="sh" frame="none" locale={locale} /></TabItem>
+				<TabItem label="pnpm"><Code code="pnpm add fetchzen" lang="sh" frame="none" locale={locale} /></TabItem>
 			</Tabs>
 		</div>
+		<p class="home-release"><span>{t("Version")}</span> {packageInfo.version} · {t("Not published yet")}</p>
 	</div>
 
 	<div class="home-editor">
@@ -99,19 +106,24 @@ const user = await api.get<User>("/me");
 	<TabItem label={example.label}>
 		<Code code={example.code} lang="ts" frame="none" locale={locale} />
 		<a class="home-editor__note" href={href(example.link)}>
-			{example.note} <span aria-hidden="true">↗</span>
+			{example.note} <PenIcon name="arrow-right" size={iconSize} />
 		</a>
 	</TabItem>
 ))}
 		</Tabs>
+		<ol class="home-flow" aria-label={t("Response path")}>
+			<li><code>fetch</code></li>
+			<li><PenIcon name="arrow-right" size={iconSize} /> {t("Your preset")}</li>
+			<li><PenIcon name="arrow-right" size={iconSize} /> {t("Typed result")}</li>
+		</ol>
 	</div>
 
 	<nav class="home-facts" aria-label={t("Library at a glance")}>
+		<a href="#comparisons"><strong>{own.runtimeDependencies}</strong><span>{t("runtime dependencies")}</span></a>
 		<a href="#comparisons"
 			><strong>{(own.gzipBytes / bytesPerKilobyte).toFixed(2)} <small>kB</small></strong
 			><span>{t("minified + gzip¹")}</span></a
 		>
-		<a href="#comparisons"><strong>{own.runtimeDependencies}</strong><span>{t("runtime dependencies")}</span></a>
 		<a href={href("guides/presets/")}><strong>4</strong><span>{t("built-in response presets")}</span></a>
 		<a href="#capabilities"><strong>{t("Native")}</strong><span>{t("fetch, signals, and streams")}</span></a>
 	</nav>

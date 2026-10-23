@@ -3,7 +3,7 @@
  *
  * Consumers add their own shapes through declaration merging:
  *
- * declare module "@tuentyfaiv/http" {
+ * declare module "fetchzen" {
  *   interface HttpShapes<T> {
  *     acme: { ok: boolean; result: T; traceId: string };
  *   }
@@ -33,6 +33,17 @@ export type ResponseKind = "json" | "file" | "text" | "empty" | "stream" | "unkn
 
 /** Forces how the body is read. `auto` infers it from status and Content-Type. */
 export type HttpResponseType = "auto" | "json" | "text" | "blob" | "arrayBuffer" | "stream" | "none";
+
+/** Payload before schema validation; auto/JSON cannot establish a data shape. */
+export type HttpResponsePayload<M extends HttpResponseType> = {
+	auto: unknown;
+	json: unknown;
+	text: string;
+	blob: Blob;
+	arrayBuffer: ArrayBuffer;
+	stream: ReadableStream<Uint8Array> | null;
+	none: undefined;
+}[M];
 
 export type HttpParamsSerializer = (params: Record<string, unknown>) => string;
 
@@ -66,7 +77,7 @@ export interface ResponseContext {
 	kind: ResponseKind;
 	body: unknown;
 	errorMessage?: string;
-	/** Set when a schema validated the payload; presets use it verbatim. */
+	/** Present after schema validation, even for undefined output; presets use it verbatim. */
 	payload?: unknown;
 }
 
@@ -82,4 +93,7 @@ export interface HttpPreset<K extends ShapeName = ShapeName> {
 
 export type HttpThrower = (context: { json: Record<string, unknown>; response: Response }) => void;
 
-export type HttpFetch = (input: string, init?: RequestInit) => Promise<Response>;
+/** Native Fetch options, including the request-stream option used by Node and supporting browsers. */
+export type HttpFetchInit = RequestInit & { duplex?: "half" };
+
+export type HttpFetch = (input: string, init?: HttpFetchInit) => Promise<Response>;

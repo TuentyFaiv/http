@@ -1,0 +1,34 @@
+---
+title: Retries
+description: Retry transient failures and honor Retry-After.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+
+This demo endpoint fails twice before succeeding. Its attempt header is a demo protocol, not a requirement for your API.
+
+```ts
+import { Http, envelope } from "fetchzen";
+let attempt = 0;
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+  fetch: (input, init) => {
+    const headers = new Headers(init?.headers);
+    headers.set("X-Demo-Attempt", String(++attempt));
+    return globalThis.fetch(input, { ...init, headers });
+  },
+});
+console.log(await api.get("retry", {
+  retry: { attempts: 2, respectRetryAfter: true },
+}));
+```
+
+<LiveExamples scenario="retry" />
+
+## What to notice
+
+Two retries allow three sends. Attempts 1 and 2 return 503 with `Retry-After: 0`.
+Request hooks run once per logical request; the transport runs per send.
+Consider idempotency before retrying writes.
+
+Next: [hooks](../hooks/) or [resilience](../../guides/resilience/).

@@ -8,7 +8,7 @@ sidebar:
 Usa un controlador por búsqueda y comprueba que siga siendo la petición más reciente. Cancelar ahorra trabajo cuando el transporte lo admite; comprobar la identidad también evita que resultados obsoletos actualicen la interfaz.
 
 ```ts
-import { Http, rest } from "@tuentyfaiv/http";
+import { Http, rest } from "fetchzen";
 
 interface SearchItem {
   id: string;
@@ -63,3 +63,4 @@ Llama a `search(query)` cuando cambie el campo de búsqueda y a `dispose()` cuan
 Un fetch inyectado debe respetar `init.signal` por su cuenta. Cancelar no garantiza que el servidor haya dejado de procesar la petición.
 
 Consulta también: [pruebas con fetch inyectado](../testing-injected-fetch/).
+Prueba [tiempo límite y cancelación](../../examples/timeout-cancellation/).

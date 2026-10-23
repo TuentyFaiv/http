@@ -1,0 +1,64 @@
+---
+title: Transforms
+description: Infer a schema's transformed output.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+Choose a tab to transform the response with the same library in the snippet and live demo.
+See the [validation guide](../../guides/validation/) for installation.
+
+<Tabs>
+<TabItem label="Zod">
+
+```ts
+import { Http, envelope } from "fetchzen";
+import { z } from "zod";
+
+const schema = z.object({ name: z.string().trim() }).transform(({ name }) => ({
+  greeting: `Hello, ${name}`,
+  characters: name.length,
+}));
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+});
+const result = await api.get("echo", { params: { name: "Ada" }, schema });
+console.log(result.payload.greeting, result.payload.characters);
+```
+
+<LiveExamples scenario="transform" validator="zod" />
+
+</TabItem>
+<TabItem label="Valibot">
+
+```ts
+import { Http, envelope } from "fetchzen";
+import * as v from "valibot";
+
+const schema = v.pipe(
+  v.object({ name: v.pipe(v.string(), v.trim()) }),
+  v.transform(({ name }) => ({
+    greeting: `Hello, ${name}`,
+    characters: name.length,
+  })),
+);
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+});
+const result = await api.get("echo", { params: { name: "Ada" }, schema });
+console.log(result.payload.greeting, result.payload.characters);
+```
+
+<LiveExamples scenario="transform" validator="valibot" />
+
+</TabItem>
+</Tabs>
+
+## What to notice
+
+Try surrounding spaces: both the greeting and character count use the trimmed name.
+The inferred payload is `{ greeting: string; characters: number }`, not `{ name: string }`.
+This site's bounded echo endpoint supplies the input; the schema transforms it locally.
+
+Next: [validation](../validation/) or [JSON](../json/).

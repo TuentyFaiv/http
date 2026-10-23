@@ -1,12 +1,50 @@
 // biome-ignore-all lint/style/useNamingConvention: dictionary keys preserve the English source copy, including capitalization.
 // English source strings are the keys, so missing translations are type errors.
 const spanish = {
+	"Typed requests.": "Solicitudes tipadas.",
+	"Clear results.": "Resultados claros.",
+	"TypeScript-first. Fetch-native.": "TypeScript primero. Fetch nativo.",
+	"One reusable client for your API. Typed results, thoughtful defaults, and room for your own conventions.":
+		"Un cliente reutilizable para tu API. Resultados tipados, valores predeterminados bien pensados y espacio para tus convenciones.",
+	"Try a live example": "Prueba un ejemplo",
+	Version: "Versión",
+	"Not published yet": "Aún sin publicar",
+	"Response path": "Ruta de la respuesta",
+	"Your preset": "Tu preset",
+	"Typed result": "Resultado tipado",
+	"Less wrapper code. More application code.": "Menos envoltorios. Más código de tu aplicación.",
+	"Choose your shape.": "Elige la estructura.",
+	"Keep your flow.": "Conserva tu flujo.",
+	"Every response has a place.": "Cada respuesta tiene su lugar.",
+	"Server-confirmed uploads": "Cargas confirmadas por el servidor",
+	"Chunk receipts": "Comprobantes por bloque",
+	"Native upload events": "Eventos nativos de carga",
+	"Real bytes. Honest progress.": "Bytes reales. Progreso sin suposiciones.",
+	"Count only the bytes your server acknowledges. An opt-in chunk convention, not simulated Fetch upload events.":
+		"Cuenta solo los bytes que confirma tu servidor. Una convención opcional por bloques, no eventos de carga simulados.",
+	"Explore confirmed uploads": "Explora las cargas confirmadas",
+	"Build on the platform.": "Sobre las bases de la plataforma.",
+	"Not around it.": "Sin rodeos.",
+	"FetchZen adds conventions, not another transport. Keep native Fetch, AbortSignal, Response, and streams.":
+		"FetchZen agrega convenciones, no otro transporte. Conserva Fetch, AbortSignal, Response y los flujos nativos.",
+	"Find your next step": "Elige el siguiente paso",
+	"Make your first request": "Haz tu primera solicitud",
+	"Send, validate, and handle errors in a few lines.": "Envía, valida y maneja errores en pocas líneas.",
+	"Run the real thing": "Pruébalo de verdad",
+	"Focused examples. Real requests. Nothing runs on page load.":
+		"Ejemplos enfocados. Solicitudes reales. Nada se ejecuta al cargar la página.",
+	"Make it your own": "Adáptalo a tu API",
+	"Share a client, choose a preset, and configure your defaults.":
+		"Comparte un cliente, elige un preset y configura tus valores predeterminados.",
+	"Read the recipe": "Lee la receta",
+	"FetchZen docs": "Documentación de FetchZen",
+	"Typed HTTP. A little less noise.": "HTTP tipado. Un poco menos de ruido.",
+	"Built on native Fetch. Made for your conventions.": "Sobre Fetch nativo. Para tus convenciones.",
 	"Typed results": "Resultados tipados",
 	"An envelope by default. The payload type is yours.":
 		"Una respuesta envuelta por defecto. Tú defines el tipo del contenido.",
 	"Safe errors": "Errores seguros",
-	"Choose an error/result tuple or the throwing API.":
-		"Elige una tupla error/resultado o la API que lanza excepciones.",
+	"Choose a data/error object or the throwing API.": "Elige un objeto data/error o la API que lanza excepciones.",
 	"Your conventions": "Tus convenciones",
 	"just the parsed body": "solo el cuerpo procesado",
 	"Also included: envelope, rest, problem.": "También se incluyen: envelope, rest, problem.",
@@ -46,7 +84,7 @@ const spanish = {
 	"Standard Schema validation": "Validación con Standard Schema",
 	"Built in": "Integrado",
 	"Custom integration": "Integración personalizada",
-	"Error / result tuple": "Tupla error / resultado",
+	"Data / error object": "Objeto data / error",
 	"Download progress": "Progreso de descarga",
 	"Read the stream": "Leer el flujo",
 	"Upload progress callback": "Callback de progreso de carga",
@@ -137,8 +175,8 @@ const spanish = {
 	"Gzip bytes": "Bytes con gzip",
 	"Median µs/op": "Mediana µs/op",
 	"Min–max µs/op": "Mín–máx µs/op",
-	"HTTP is measured from the local working tree, not the npm release with the same version. Source fingerprint:":
-		"HTTP se mide desde el árbol de trabajo local, no desde la publicación en npm con la misma versión. Huella del código fuente:",
+	"FetchZen is measured from the local working tree, not the npm release with the same version. Source fingerprint:":
+		"FetchZen se mide desde el árbol de trabajo local, no desde la publicación en npm con la misma versión. Huella del código fuente:",
 	". Timing varies with CPU load, garbage collection, and runtime. No statistical significance is claimed.":
 		". Los tiempos varían según la carga del CPU, la recolección de basura y el entorno de ejecución. No se afirma significancia estadística.",
 	"Benchmark source ↗": "Código de las pruebas de rendimiento ↗",

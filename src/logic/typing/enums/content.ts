@@ -1,5 +1,5 @@
 // biome-ignore lint/style/useNamingConvention: const-object stand-in for an enum (noEnum); PascalCase is the public api
-const ContentType = {
+const ContentType = /* @__PURE__ */ Object.freeze({
 	// Text types
 	TEXT_PLAIN: "text/plain",
 	TEXT_HTML: "text/html",
@@ -37,10 +37,7 @@ const ContentType = {
 	VIDEO_MP4: "video/mp4",
 	VIDEO_WEBM: "video/webm",
 	VIDEO_OGG: "video/ogg",
-} as const;
-
-Object.freeze(ContentType);
-Object.seal(ContentType);
+} as const);
 
 export type ContentTypes = (typeof ContentType)[keyof typeof ContentType];
 

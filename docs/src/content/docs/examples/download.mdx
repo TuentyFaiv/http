@@ -1,0 +1,34 @@
+---
+title: Download
+description: Receive a blob and observe download progress.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+
+Receive a bounded binary response from this site's demo endpoint.
+
+```ts
+import { Http, bare } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: bare,
+});
+const blob = await api.get<Blob, { known: string }>("download", {
+  params: { known: "1" }, responseType: "blob",
+  onDownloadProgress: ({ loaded, total, percent }) => {
+    console.log({ loaded, total, percent });
+  },
+});
+console.log(blob.size);
+```
+
+<LiveExamples scenario="download" />
+
+## What to notice
+
+The demo sends 256 KiB in 16 server chunks; network buffering can merge them.
+Without a usable total, progress stays indeterminate. Non-identity encoding makes totals unknown;
+for cross-origin APIs, CORS must expose the relevant length and encoding headers.
+Choose **Save demo.bin** after completion; no automatic download starts.
+The panel reuses one object URL and revokes it on the next Run or when you leave the page.
+
+Next: [streaming](../streaming/) or [file transfers](../../recipes/file-transfers/).

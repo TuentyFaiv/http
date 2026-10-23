@@ -8,10 +8,10 @@ import { createPreset } from "./create.js";
  * Familiar shape for anyone arriving from axios: status-only validation and a
  * `{ data, status, headers, response }` result.
  */
-export const rest = createPreset({
+export const rest = /* @__PURE__ */ createPreset({
 	name: "rest",
 	shape: "rest",
-	conventions: [statusFallback()],
+	conventions: [/* @__PURE__ */ statusFallback()],
 
 	build<T>(context: ResponseContext, unwrap: Unwrap): ApplyShape<"rest", T> {
 		return {

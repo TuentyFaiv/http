@@ -8,8 +8,8 @@ sidebar:
 This browser recipe keeps the access token in memory. It assumes `/refresh` uses an HttpOnly refresh cookie and returns JSON `{ "token": "..." }`. Configure cookie, CORS, and CSRF protections on your server; `credentials: "include"` does not provide those protections by itself.
 
 ```ts
-import { Http, rest } from "@tuentyfaiv/http";
-import type { HttpFetch } from "@tuentyfaiv/http";
+import { Http, rest } from "fetchzen";
+import type { HttpFetch } from "fetchzen";
 
 export function createSessionClient(
   initialToken: string,

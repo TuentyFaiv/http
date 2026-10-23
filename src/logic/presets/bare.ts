@@ -8,10 +8,10 @@ import { createPreset } from "./create.js";
  * Neutral preset: rejects on http status alone and returns the parsed body
  * untouched, with no envelope and no unwrapping.
  */
-export const bare = createPreset({
+export const bare = /* @__PURE__ */ createPreset({
 	name: "bare",
 	shape: "bare",
-	conventions: [statusFallback()],
+	conventions: [/* @__PURE__ */ statusFallback()],
 
 	build<T>(context: ResponseContext, unwrap: Unwrap): ApplyShape<"bare", T> {
 		return unwrap(context.body) as T;
