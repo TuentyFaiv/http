@@ -11,7 +11,7 @@ the same private channel below. Do not include credentials or private user data.
 
 Public documentation demos must not act as an unrestricted HTTP proxy. Before
 deployment, maintainers must verify request/body limits, timeouts, rate limiting,
-origin policy, and safe error/log redaction (see `RELEASE_CHECKLIST.md`).
+origin policy, and safe error/log redaction.
 
 ## Reporting a vulnerability
 

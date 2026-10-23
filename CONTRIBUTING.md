@@ -77,5 +77,5 @@ cannot enforce those account settings itself.
 
 For `0.2.0-beta.1`, use `v0.2.0-beta.1`, mark the GitHub Release as a prerelease,
 and target `main`. Prereleases are explicitly published to npm's `beta` dist-tag,
-never `latest`. Follow [the release checklist](./RELEASE_CHECKLIST.md); creating
-a published GitHub Release triggers publication and requires maintainer approval.
+never `latest`. Publishing a GitHub Release triggers the release workflow; review
+the exact commit and tested artifact before approving the `npm` environment.

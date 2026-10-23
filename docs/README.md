@@ -31,12 +31,10 @@ and the library's Node 20+ consumer support are unchanged.
 
 ## Visual identity
 
-See [DESIGN.md](./DESIGN.md) for the approved original Open f / Hand Baseline
-identity, violet/saffron light and dark themes, typography, and interaction rules.
-[ACCESSIBILITY.md](./ACCESSIBILITY.md) records executed checks and remaining AAA evaluation.
-Earlier branding explorations are not authority. Fonts are self-hosted, documentation-only assets; the published
-library remains dependency-free. Keep the served `public/fonts-license.txt`
-copyright and OFL notices with the fonts.
+The docs use the Open f / Hand Baseline identity with violet/saffron light and dark
+themes. Fonts are self-hosted, documentation-only assets; the published library
+remains dependency-free. Keep the served `public/fonts-license.txt` copyright and
+OFL notices with the fonts.
 
 ## Deploy to Workers
 
