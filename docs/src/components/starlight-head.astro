@@ -1,0 +1,26 @@
+---
+import DefaultHead from "@astrojs/starlight/components/Head.astro";
+
+import "../styles/starlight-controls.css";
+
+import IconMasks from "./icon-masks.astro";
+import PenIcon from "./pen-icon.astro";
+---
+
+<DefaultHead />
+<IconMasks>
+	<PenIcon slot="arrow-right" name="arrow-right" size={24} />
+	<PenIcon slot="search" name="search" size={24} />
+	<PenIcon slot="menu" name="menu" size={24} />
+	<PenIcon slot="sun" name="sun" size={24} />
+	<PenIcon slot="moon" name="moon" size={24} />
+	<PenIcon slot="copy" name="copy" size={24} />
+	<PenIcon slot="external-link" name="external-link" size={24} />
+	<PenIcon slot="github" name="github" size={24} />
+	<PenIcon slot="close" name="close" size={24} />
+	<PenIcon slot="hourglass" name="hourglass" size={24} />
+	<PenIcon slot="chevron-down" name="chevron-down" size={24} />
+	<PenIcon slot="check" name="check" size={24} />
+	<PenIcon slot="warning" name="warning" size={24} />
+	<PenIcon slot="language" name="language" size={24} />
+</IconMasks>

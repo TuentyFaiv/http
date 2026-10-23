@@ -166,6 +166,9 @@ dist
 # vuepress v2.x temp and cache directory
 .temp
 
+# Impeccable's generated interview state; curated design documents remain versionable.
+**/.impeccable/questions/
+
 # Docusaurus cache and generated files
 .docusaurus
 
@@ -229,3 +232,8 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/windows,macos,linux,node
 
 bundle-analysis.html
+PRODUCT.md
+DESIGN.md
+ACCESSIBILITY.md
+RELEASE_NOTES.md
+RELEASE_CHECKLIST.md

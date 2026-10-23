@@ -1,8 +1,11 @@
+import type { HttpUploadChunkReceipt } from "../../../src/helpers.js";
 import type { DemoContext } from "./demo-request-helper.js";
 
-import { bare, ContentType, Http } from "../../../src/index.js";
+import { uploadConfirmed } from "../../../src/helpers.js";
+import { bare, ContentType, envelope, Http } from "../../../src/index.js";
 
 const FILE_LIMIT = 1_048_576;
+const FIELD_LIMIT = 100;
 const STREAM_LIMIT = 65_536;
 const LINE_LIMIT = 4096;
 const RECORD_LIMIT = 64;
@@ -13,12 +16,50 @@ async function uploadDemo(context: DemoContext) {
 	}
 	const api = Http.create(context.base, { cache: false, secure: false, preset: bare });
 	context.log(context.text.uploading);
-	const receipt = await api.post("upload", file, {
+	const receipt = await api.post("upload/", file, {
 		signal: context.signal,
 		type: ContentType.APPLICATION_OCTET_STREAM,
 	});
 	context.log(context.text.receipt);
 	return receipt;
+}
+async function multipartDemo(context: DemoContext) {
+	const file = context.form.get("file");
+	if (!(file instanceof File) || file.size > FILE_LIMIT || !file.name) {
+		throw new Error(context.text.fileLimit);
+	}
+	const body = new FormData();
+	body.set("file", file);
+	body.set("name", String(context.form.get("name") ?? "").slice(0, FIELD_LIMIT));
+	const api = Http.create(context.base, { cache: false, secure: false, preset: bare });
+	context.log(context.text.uploading);
+	// Fetch supplies the multipart boundary; do not set Content-Type manually.
+	return await api.post("multipart/", body, { signal: context.signal });
+}
+async function confirmedUploadDemo(context: DemoContext) {
+	const size = Number(context.form.get("confirmedSize") ?? FILE_LIMIT);
+	if (!Number.isSafeInteger(size) || size < 0 || size > FILE_LIMIT) {
+		throw new Error(context.text.confirmedSizeLimit);
+	}
+	const body = new Blob([new Uint8Array(size)]);
+	const api = Http.create(context.base, { cache: false, secure: false, preset: envelope });
+	const summary = await uploadConfirmed(body, {
+		signal: context.signal,
+		async sendChunk(chunk, { signal, offset }) {
+			const { payload } = await api.post<Blob, HttpUploadChunkReceipt>("upload-chunk/", chunk, {
+				signal,
+				type: ContentType.APPLICATION_OCTET_STREAM,
+				retry: 0,
+			});
+			context.log(`${context.text.receipt}: ${offset} + ${payload.receivedBytes} ${context.text.bytes}`);
+			return payload;
+		},
+		onUploadProgress({ loaded, total, done }) {
+			context.progress(loaded, total, done);
+		},
+	});
+	context.log(context.text.confirmedReceipt);
+	return { ...summary, stored: false };
 }
 async function downloadDemo(context: DemoContext) {
 	const api = Http.create(context.base, { cache: false, secure: false, preset: bare });
@@ -26,10 +67,12 @@ async function downloadDemo(context: DemoContext) {
 		signal: context.signal,
 		params: { known: context.form.has("known") ? "1" : "0" },
 		responseType: "blob",
-		onDownloadProgress: ({ loaded, total }) => {
-			context.progress(loaded, total);
+		onDownloadProgress: ({ loaded, total, done }) => {
+			context.progress(loaded, total, done);
 		},
 	});
+	context.signal.throwIfAborted();
+	context.download?.(blob);
 	return { bytes: blob.size, contentType: blob.type };
 }
 function record(line: string, context: DemoContext): unknown {
@@ -123,4 +166,4 @@ async function streamDemo(context: DemoContext) {
 	}
 }
 
-export { downloadDemo, streamDemo, uploadDemo };
+export { confirmedUploadDemo, downloadDemo, multipartDemo, streamDemo, uploadDemo };

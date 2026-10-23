@@ -18,27 +18,33 @@ function keyCount(value: unknown): number {
  * Default preset. Recognizes the api conventions this library was built
  * against and returns the `{ success, message, payload, response }` envelope.
  */
-export const envelope = createPreset({
+export const envelope = /* @__PURE__ */ createPreset({
 	name: "envelope",
 	shape: "envelope",
-	conventions: [errorField(), detailField(), payloadField(), errorsField(), statusFallback()],
+	conventions: [
+		/* @__PURE__ */ errorField(),
+		/* @__PURE__ */ detailField(),
+		/* @__PURE__ */ payloadField(),
+		/* @__PURE__ */ errorsField(),
+		/* @__PURE__ */ statusFallback(),
+	],
 	unwrap: ["data", "payload"],
 
 	build<T>(context: ResponseContext, unwrap: Unwrap): ApplyShape<"envelope", T> {
 		const { response, kind, body } = context;
+		const payload = unwrap(body);
 
 		if (kind === "file") {
 			return {
 				success: true,
 				message: "Success to download",
-				payload: body as T,
+				payload: payload as T,
 				response,
 			};
 		}
 
 		if (kind === "json") {
 			const json = isRecord(body) ? body : {};
-			const payload = unwrap(body);
 
 			return {
 				success: Boolean(json.result) || Boolean(json.success) || keyCount(payload) > 0,
@@ -52,7 +58,7 @@ export const envelope = createPreset({
 			return {
 				success: true,
 				message: response.statusText,
-				payload: body as T,
+				payload: payload as T,
 				response,
 			};
 		}
@@ -61,7 +67,7 @@ export const envelope = createPreset({
 			return {
 				success: response.ok,
 				message: response.statusText,
-				payload: body as T,
+				payload: payload as T,
 				response,
 			};
 		}

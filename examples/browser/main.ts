@@ -26,7 +26,7 @@ http.hook("request", ({ url, init }) => {
 });
 
 async function listCharacters() {
-	const [error, response] = await rickAndMorty.safe.get<{ results: { name: string }[] }, { page: number }>(
+	const { data: response, error } = await rickAndMorty.safe.get<{ results: { name: string }[] }, { page: number }>(
 		"/character",
 		{
 			params: { page: 1 },
@@ -77,7 +77,7 @@ function uploadForm() {
 	form.addEventListener("submit", async (event) => {
 		event.preventDefault();
 
-		const [error, response] = await converter.safe.post<FormData, Blob>("/transform", new FormData(form), {
+		const { data: response, error } = await converter.safe.post<FormData, Blob>("/transform", new FormData(form), {
 			type: ContentType.APPLICATION_FORM_DATA,
 			responseType: "blob",
 			onDownloadProgress: ({ percent }) => {

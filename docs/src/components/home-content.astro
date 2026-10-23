@@ -2,8 +2,10 @@
 import comparison from "../data/client-comparison.json" with { type: "json" };
 import { homepageLocale } from "../i18n/home";
 import ClientComparisons from "./client-comparisons.astro";
+import PenIcon from "./pen-icon.astro";
 
 const { t, href } = homepageLocale(Astro.url.pathname);
+const iconSize = 20;
 const own = comparison.clients.find((client) => client.id === "http");
 
 const axios = comparison.clients.find((client) => client.id === "axios");
@@ -22,11 +24,15 @@ const rows = [
 		feature: t("Standard Schema validation"),
 		values: [t("Built in"), t("Custom integration"), t("Custom integration")],
 	},
-	{ feature: t("Error / result tuple"), values: ["api.safe", t("Custom wrapper"), t("Custom wrapper")] },
+	{ feature: t("Data / error object"), values: ["api.safe", t("Custom wrapper"), t("Custom wrapper")] },
 	{ feature: t("Download progress"), values: [t("Built in"), t("Built in"), t("Read the stream")] },
 	{
-		feature: t("Upload progress callback"),
+		feature: t("Native upload events"),
 		values: [t("Not built in"), t("Adapter-dependent"), t("Custom code")],
+	},
+	{
+		feature: t("Server-confirmed uploads"),
+		values: [t("Chunk receipts"), t("Custom code"), t("Custom code")],
 	},
 ];
 const features = [
@@ -41,7 +47,7 @@ const features = [
 	},
 	{
 		title: t("Failure is part of the API."),
-		code: 'const [error, result] = await api.safe.get("/me");',
+		code: 'const { data: result, error } = await api.safe.get("/me");',
 		description: t(
 			"Keep status, cause, response, and request context together. Handle errors as values when that fits your code."
 		),
@@ -57,17 +63,39 @@ const features = [
 		link: "guides/validation/",
 		action: t("Validate a response"),
 	},
+	{
+		title: t("Real bytes. Honest progress."),
+		code: "uploadConfirmed(file, { sendChunk })",
+		description: t(
+			"Count only the bytes your server acknowledges. An opt-in chunk convention, not simulated Fetch upload events."
+		),
+		link: "recipes/confirmed-uploads/",
+		action: t("Explore confirmed uploads"),
+	},
 ];
 ---
 
 <div class="home-content home-surface not-content">
-	<ClientComparisons />
+	<nav class="home-paths" aria-label={t("Find your next step")}>
+		<a href={href("getting-started/")}>
+			<strong>{t("Make your first request")} <PenIcon name="arrow-right" size={iconSize} /></strong>
+			<span>{t("Send, validate, and handle errors in a few lines.")}</span>
+		</a>
+		<a href={href("examples/live/")}>
+			<strong>{t("Run the real thing")} <PenIcon name="arrow-right" size={iconSize} /></strong>
+			<span>{t("Focused examples. Real requests. Nothing runs on page load.")}</span>
+		</a>
+		<a href={href("recipes/shared-typed-client/")}>
+			<strong>{t("Make it your own")} <PenIcon name="arrow-right" size={iconSize} /></strong>
+			<span>{t("Share a client, choose a preset, and configure your defaults.")}</span>
+		</a>
+	</nav>
 
 	<section class="home-section" aria-labelledby="features-title">
 		<div class="home-section__heading">
 			<div>
-				<p class="home-kicker">{t("Beyond a shorter fetch call")}</p>
-				<h2 id="features-title">{t("Opinionated defaults.")}<br>{t("Your conventions.")}</h2>
+				<h2 id="features-title">{t("Choose your shape.")}<br>{t("Keep your flow.")}</h2>
+				<p class="home-section__context">{t("Less wrapper code. More application code.")}</p>
 			</div>
 			<p>
 				{t(
@@ -82,23 +110,32 @@ const features = [
 		<p>{feature.description}</p>
 		<code>{feature.code}</code>
 		<a href={href(feature.link)}>
-			{feature.action} <span aria-hidden="true">↗</span>
+			{feature.action} <PenIcon name="arrow-right" size={iconSize} />
 		</a>
 	</article>
 ))}
 		</div>
 		<div class="home-hook-strip">
-			<span>{t("Also included")}</span><a href={href("guides/resilience/")}>{t("Timeouts & retries ↗")}</a
-			><a href={href("guides/hooks/")}>{t("Composable hooks ↗")}</a
-			><a href={href("guides/errors/")}>{t("Handle errors ↗")}</a>
+			<span>{t("Also included")}</span>
+			<a href={href("guides/resilience/")}
+				>{t("Timeouts & retries ↗").replace(/\s*↗\s*$/, "")} <PenIcon name="arrow-right" size={iconSize} /></a
+			>
+			<a href={href("guides/hooks/")}
+				>{t("Composable hooks ↗").replace(/\s*↗\s*$/, "")} <PenIcon name="arrow-right" size={iconSize} /></a
+			>
+			<a href={href("guides/errors/")}
+				>{t("Handle errors ↗").replace(/\s*↗\s*$/, "")} <PenIcon name="arrow-right" size={iconSize} /></a
+			>
 		</div>
 	</section>
+
+	<ClientComparisons />
 
 	<section class="home-section" id="capabilities" aria-labelledby="capabilities-title">
 		<div class="home-section__heading">
 			<div>
-				<p class="home-kicker">{t("Choose the right abstraction")}</p>
 				<h2 id="capabilities-title">{t("More than a size contest.")}</h2>
+				<p class="home-section__context">{t("Choose the right abstraction")}</p>
 			</div>
 			<p>
 				{t("These clients make different choices. Here is what each provides directly, and what you would wire up yourself.")}
@@ -116,7 +153,7 @@ const features = [
 					<tr>
 						<th scope="col">{t("Capability")}</th>
 						<th scope="col" class="home-own-column">
-							@tuentyfaiv/http<small>{own.version} · {t("local build")}</small>
+							{own.name}<small>{own.version} · {t("local build")}</small>
 						</th>
 
 						<th scope="col">Axios<small>{axios.version}</small></th>
@@ -136,9 +173,12 @@ const features = [
 			</table>
 		</section>
 		<p class="home-source-links">
-			{t("References:")} <a href={href("getting-started/")}>{t("HTTP docs")}</a
-			><a href={`https://github.com/axios/axios/tree/v${axios.version}#readme`}>Axios {axios.version} ↗</a
-			><a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch">{t("Fetch API ↗")}</a>
+			{t("References:")} <a href={href("getting-started/")}>{t("FetchZen docs")}</a
+			><a href={`https://github.com/axios/axios/tree/v${axios.version}#readme`}
+				>Axios {axios.version} <PenIcon name="external-link" size={iconSize} /></a
+			><a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch"
+				>{t("Fetch API ↗").replace(/\s*↗\s*$/, "")} <PenIcon name="external-link" size={iconSize} /></a
+			>
 		</p>
 		<div class="home-tradeoff">
 			<h3>{t("When would you choose something else?")}</h3>
@@ -152,15 +192,15 @@ const features = [
 
 	<section class="home-cta" aria-labelledby="start-title">
 		<div>
-			<p class="home-kicker">{t("No framework required")}</p>
 			<h2 id="start-title">{t("Start with one request.")}</h2>
+			<p class="home-section__context">{t("No framework required")}</p>
 			<p>{t("Set a base URL. Choose your conventions. Keep your stack.")}</p>
 		</div>
 		<div class="home-actions">
 			<a class="home-button" href={href("getting-started/")}
-				>{t("Read the quickstart")} <span aria-hidden="true">↗</span></a
+				>{t("Read the quickstart")} <PenIcon name="arrow-right" size={iconSize} /></a
 			><a class="home-text-link" href="https://github.com/TuentyFaiv/http"
-				>{t("View source")} <span aria-hidden="true">↗</span></a
+				>{t("View source")} <PenIcon name="external-link" size={iconSize} /></a
 			>
 		</div>
 	</section>

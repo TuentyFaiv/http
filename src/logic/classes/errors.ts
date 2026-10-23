@@ -1,6 +1,4 @@
-import type { HttpConnectionError } from "../typing/classes/http.typing.js";
-
-export type ServiceErrorData = HttpConnectionError;
+import type { HttpErrorInit } from "../typing/classes/preset.typing.js";
 
 /** V8 only; absent on Safari and Firefox. */
 type ErrorWithCapture = ErrorConstructor & {
@@ -28,14 +26,12 @@ export class ServiceError extends Error {
 	date: Date;
 	status: number;
 	statusText: string;
-	errors: HttpConnectionError["errors"];
+	errors: HttpErrorInit["errors"];
 	code?: string;
 	response?: Response;
-	request?: HttpConnectionError["request"];
+	request?: HttpErrorInit["request"];
 
-	#data: ServiceErrorData;
-
-	constructor(data: HttpConnectionError, options?: ErrorOptions) {
+	constructor(data: HttpErrorInit, options?: ErrorOptions) {
 		super(data.message ?? "", options);
 
 		captureStack(this, ServiceError);
@@ -48,13 +44,9 @@ export class ServiceError extends Error {
 		this.code = data.code;
 		this.response = data.response;
 		this.request = data.request;
-		this.#data = data;
 	}
 
-	/** @deprecated read the properties directly; kept for older call sites. */
-	view = () => this.#data;
-
-	/** Without this the error serializes to `{}` in logs and error reporters. */
+	/** Serializes named failure details, including the non-enumerable Error.message. */
 	// biome-ignore lint/style/useNamingConvention: `toJSON` is the name JSON.stringify looks for
 	toJSON() {
 		return {

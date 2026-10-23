@@ -1,89 +1,181 @@
 ---
-import { Code } from "@astrojs/starlight/components";
+import type { Scenario } from "../i18n/examples";
 
 import "../styles/live-examples.css";
 
-import { exampleText, scenarios } from "../i18n/examples";
+import { exampleText } from "../i18n/examples";
 import { homepageLocale } from "../i18n/home";
-import requestSource from "../scripts/demo-request-helper.ts?raw";
-import transferSource from "../scripts/demo-transfer-helper.ts?raw";
+import PenIcon from "./pen-icon.astro";
 
+interface Props {
+	scenario: Scenario;
+	validator?: "zod" | "valibot";
+}
+const { scenario, validator } = Astro.props;
 const { locale } = homepageLocale(Astro.url.pathname);
 const t = exampleText(locale);
+const showEvents = ["hooks", "retry", "configure", "stream", "confirmedUpload"].includes(scenario);
+const PARTIAL_CHUNK_DEMO_SIZE = 600_000;
+const ICON_SIZE = 20;
 ---
 
-<section class="live-examples not-content" data-live-examples lang={locale} aria-label={t.title}>
-	<header><strong>{t.title}</strong><code>{import.meta.env.BASE_URL}api/examples/</code></header>
-	<p>{t.privacy}</p>
-	<form>
-		<fieldset>
+<section
+	class="live-examples not-content"
+	data-live-examples
+	data-scenario={scenario}
+	data-validator={validator}
+	lang={locale}
+	aria-label={t[scenario]}
+>
+	<header><strong>{t.title}</strong><span>{t[scenario]}</span></header>
+	<form aria-busy="false">
+		{validator && <input type="hidden" name="validator" value={validator} />}
+		{scenario === "safeRequest" && <input type="hidden" name="preset" value="problem" />}
+		<fieldset hidden={scenario === "retry" || scenario === "stream"}>
 			<legend>{t.parameters}</legend>
-			<label
-				>{t.scenario}<select name="scenario" data-scenario>
-					{scenarios.map((scenario) => <option value={scenario}>{t[scenario]}</option>)}
-				</select></label
-			>
 			<div class="live-fields">
-				<label data-for="json safe timing"
-					>{t.preset}<select name="preset">
-						<option>envelope</option>
-						<option>bare</option>
-						<option>rest</option>
-						<option>problem</option>
-					</select></label
-				>
-				<label data-for="json schema hooks">{t.name}<input name="name" value="Ada" maxlength="100"></label>
-				<label data-for="json"
-					>{t.method}<select name="method">
-						<option>GET</option>
-						<option>POST</option>
-					</select></label
-				>
-				<label data-for="json">{t.body}<textarea name="body" rows="3" set:text={'{"name":"Ada"}'}></textarea></label>
-				<label data-for="schema" hidden><input name="invalid" type="checkbox">{t.invalid}</label>
-				<label data-for="safe" hidden
-					>{t.status}<select name="status">
-						<option>422</option>
-						<option>429</option>
-						<option>503</option>
-					</select></label
-				>
-				<label data-for="timing" hidden
-					>{t.delay}<input type="number" name="delay" value="1000" min="0" max="3000" required></label
-				>
-				<label data-for="timing" hidden
-					>{t.deadline}<input type="number" name="deadline" value="500" min="1" max="10000" required></label
-				>
-				<label data-for="upload" hidden>{t.file}<input type="file" name="file" required></label>
-				<label data-for="download" hidden><input type="checkbox" name="known" checked>{t.known}</label>
+				{(scenario === "json" || scenario === "safe" || scenario === "timing") && (
+	<label>
+		{t.preset}
+		<span class="live-select">
+			<select name="preset">
+				<option selected={scenario !== "safe"}>envelope</option>
+				<option>bare</option>
+				<option>rest</option>
+				<option selected={scenario === "safe"}>problem</option>
+			</select>
+			<span class="live-select-icon" aria-hidden="true">
+				<PenIcon name="chevron-down" size={ICON_SIZE} />
+			</span>
+		</span>
+	</label>
+)}
+				{["json", "schema", "hooks", "multipart", "configure", "transform"].includes(scenario) && (
+	<label data-json-name={scenario === "json" || undefined}>
+		{t.name}
+		<input name="name" value="Ada" maxlength="100" />
+	</label>
+)}
+				{scenario === "json" && (
+	<>
+		<label>
+			{t.method}
+			<span class="live-select">
+				<select name="method">
+					<option>GET</option>
+					<option>POST</option>
+				</select>
+				<span class="live-select-icon" aria-hidden="true">
+					<PenIcon name="chevron-down" size={ICON_SIZE} />
+				</span>
+			</span>
+		</label>
+		<label data-json-body hidden>
+			{t.body}
+			<textarea name="body" rows="3" disabled set:text={'{"name":"Ada"}'} />
+		</label>
+	</>
+)}
+				{scenario === "schema" && (
+	<label class="live-check">
+		<input name="invalid" type="checkbox" />
+		<span class="live-check-icon" aria-hidden="true">
+			<PenIcon name="check" size={ICON_SIZE} />
+		</span>
+		<span>{t.invalid}</span>
+	</label>
+)}
+				{(scenario === "safe" || scenario === "safeRequest") && (
+	<label>
+		{t.status}
+		<span class="live-select">
+			<select name="status">
+				<option>422</option>
+				<option>429</option>
+				<option>503</option>
+			</select>
+			<span class="live-select-icon" aria-hidden="true">
+				<PenIcon name="chevron-down" size={ICON_SIZE} />
+			</span>
+		</span>
+	</label>
+)}
+				{scenario === "timing" && (
+	<>
+		<label>
+			{t.delay}
+			<input type="number" name="delay" value="1000" min="0" max="3000" required />
+		</label>
+		<label>
+			{t.deadline}
+			<input type="number" name="deadline" value="500" min="1" max="10000" required />
+		</label>
+	</>
+)}
+				{scenario === "confirmedUpload" && (
+	<label>
+		{t.confirmedSize}
+		<span class="live-select">
+			<select name="confirmedSize">
+				<option value="0">0 {t.bytes}</option>
+				<option value={PARTIAL_CHUNK_DEMO_SIZE}>
+					{new Intl.NumberFormat(locale).format(PARTIAL_CHUNK_DEMO_SIZE)} {t.bytes}
+				</option>
+				<option value="1048576" selected>
+					1 MiB
+				</option>
+			</select>
+			<span class="live-select-icon" aria-hidden="true">
+				<PenIcon name="chevron-down" size={ICON_SIZE} />
+			</span>
+		</span>
+	</label>
+)}
+				{(scenario === "upload" || scenario === "multipart") && (
+	<label>
+		{t.file}
+		<input type="file" name="file" required />
+	</label>
+)}
+				{scenario === "download" && (
+	<label class="live-check">
+		<input type="checkbox" name="known" checked />
+		<span class="live-check-icon" aria-hidden="true">
+			<PenIcon name="check" size={ICON_SIZE} />
+		</span>
+		<span>{t.known}</span>
+	</label>
+)}
 			</div>
 		</fieldset>
+		<p class="live-note live-disclosure">{t.privacy}</p>
 		<div class="live-actions">
-			<button type="submit" data-run disabled>{t.run}</button
-			><button type="button" data-cancel disabled>{t.cancel}</button>
+			<button type="submit" data-run disabled>
+				<span class="live-run-icon live-run-icon-idle" aria-hidden="true">
+					<PenIcon name="arrow-right" size={ICON_SIZE} />
+				</span>
+				<span class="live-run-icon live-run-icon-busy" aria-hidden="true">
+					<PenIcon name="hourglass" size={ICON_SIZE} />
+				</span>
+				<span class="live-run-label">{t.run}</span>
+			</button>
+			<button type="button" data-cancel disabled><PenIcon name="close" size={ICON_SIZE} />{t.cancel}</button>
+			<button type="button" data-save hidden>{t.save}</button>
 		</div>
 	</form>
 	<noscript>{t.js}</noscript>
 	<p data-state role="status" aria-live="polite">{t.idle}</p>
 	<div data-progress-area hidden><progress aria-label={t.progress}></progress><span data-progress-text></span></div>
-	<p class="live-note">{t.uploadNote}</p>
-	<div class="live-output">
-		<section aria-label={t.result}>
-			<h3>{t.result}</h3>
-			{/* biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard users need to scroll the bounded output */}
-			<pre data-result tabindex="0">{t.empty}</pre>
-		</section>
-		<section aria-label={t.log}>
-			<h3>{t.log}</h3>
-			{/* biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard users need to scroll the bounded event log */}
-			<pre data-log tabindex="0">{t.noEvents}</pre>
-		</section>
-	</div>
-	<details>
-		<summary>{t.source}</summary>
-		<p>{t.sourceNote}</p>
-		<div data-source="request"><Code code={requestSource} lang="ts" title="demo-request-helper.ts" /></div>
-		<div data-source="transfer" hidden><Code code={transferSource} lang="ts" title="demo-transfer-helper.ts" /></div>
+	{(scenario === "upload" || scenario === "multipart") && <p class="live-note">{t.uploadNote}</p>}
+	<section class="live-output" aria-label={t.result} aria-busy="false">
+		<h3>{t.result}</h3>
+		{/* biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard users need to scroll the bounded output */}
+		<pre data-result tabindex="0">{t.empty}</pre>
+	</section>
+	<details open={showEvents}>
+		<summary><PenIcon name="chevron-down" size={ICON_SIZE} />{t.log}</summary>
+		{/* biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard users need to scroll the bounded event log */}
+		<pre data-log tabindex="0">{t.noEvents}</pre>
 	</details>
 </section>
 <script>

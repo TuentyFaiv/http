@@ -1,6 +1,6 @@
 ---
 title: Errores
-description: Inspecciona errores del servicio, conserva los errores nativos y usa tuplas de resultado.
+description: Inspecciona errores del servicio, conserva los errores nativos y usa objetos data/error.
 sidebar:
   order: 4
 ---
@@ -12,7 +12,7 @@ objetos `Error` no se convierten en `ServiceError`.
 ## Maneja una solicitud rechazada
 
 ```ts
-import { Http, ServiceError } from "@tuentyfaiv/http";
+import { Http, ServiceError } from "fetchzen";
 
 const api = Http.create("https://api.example.com", { cache: false });
 
@@ -46,16 +46,16 @@ Las instancias de `Error` existentes conservan su identidad, stack y causa, salv
 que un hook de error las reemplace. Los valores lanzados que no sean `Error` se
  envuelven en uno con el valor original como `cause`.
 
-## Usa una tupla de error y resultado
+## Usa un objeto data/error
 
 Cada método HTTP tiene una versión `safe` con los mismos argumentos y la misma
 estructura del preset:
 
 ```ts
-import { Http, ServiceError } from "@tuentyfaiv/http";
+import { Http, ServiceError } from "fetchzen";
 
 const api = Http.create("https://api.example.com", { cache: false });
-const [error, result] = await api.safe.get<{ id: number }>("/me");
+const { data: result, error } = await api.safe.get<{ id: number }>("/me");
 
 if (error) {
 	console.error(error.message);
@@ -67,11 +67,29 @@ if (error) {
 }
 ```
 
-La tupla es `[Error, undefined]` o `[undefined, result]`. Verifica el tipo del error
-antes de acceder a propiedades exclusivas de `ServiceError`. `safe` no desactiva
-la validación ni los hooks de error. Solo envuelve los métodos HTTP: **`api.safe.request()`
-no devuelve una tupla segura**; usa uno de los métodos HTTP o captura el error de
-`api.request()` por tu cuenta.
+El resultado es `{ data: result, error: undefined }` si la solicitud tiene éxito o
+`{ data: undefined, error: Error }` si falla. Ambas propiedades son de solo lectura
+en la unión de TypeScript. `data` conserva la estructura del preset sin cambios;
+no extrae `payload`. Verifica el tipo del error antes de acceder a propiedades
+exclusivas de `ServiceError`. `safe` no desactiva la validación ni los hooks de
+error. Envuelve los métodos HTTP y el método base `request()` mediante el mismo flujo.
+
+```ts
+const { data, error: requestError } = await api.safe.request({
+	method: "GET",
+	endpoint: "/health",
+	responseType: "text",
+});
+
+if (!requestError) {
+	console.log(data.payload); // string
+}
+```
+
+`safe.request()` admite la misma configuración, formas de preset e inferencia de
+salida de esquemas y modos de respuesta que `request()`. El método normal `request()`
+sigue rechazando la promesa cuando falla. Configura los valores y registra hooks
+en `api`, no en su interfaz segura.
 
 ## Códigos reservados
 
@@ -92,7 +110,7 @@ Un `thrower` síncrono **reemplaza** la validación del preset, incluida la comp
 del estado HTTP. Delega a `presetThrower` para conservar las comprobaciones habituales:
 
 ```ts
-import { envelope, Http, presetThrower, ServiceError } from "@tuentyfaiv/http";
+import { envelope, Http, presetThrower, ServiceError } from "fetchzen";
 
 const api = Http.create("https://api.example.com", { cache: false });
 const fallback = presetThrower(envelope);
@@ -116,3 +134,4 @@ await api.get("/legacy", {
 Usa el preset real del cliente al construir el fallback. Para respuestas que no
 son JSON, `json` es un objeto vacío. La validación del esquema sigue después del
 thrower. Para reglas reutilizables, prefiere las [convenciones de presets](../presets/).
+Prueba [errores seguros](../../examples/safe-errors/) o la [solicitud segura](../../examples/safe-request/) de bajo nivel.

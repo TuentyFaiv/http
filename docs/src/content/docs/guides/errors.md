@@ -1,6 +1,6 @@
 ---
 title: Errors
-description: Inspect service failures, preserve native errors, and use safe result tuples.
+description: Inspect service failures, preserve native errors, and use safe data/error objects.
 sidebar:
   order: 4
 ---
@@ -12,7 +12,7 @@ are not converted to `ServiceError`.
 ## Handle a rejected request
 
 ```ts
-import { Http, ServiceError } from "@tuentyfaiv/http";
+import { Http, ServiceError } from "fetchzen";
 
 const api = Http.create("https://api.example.com", { cache: false });
 
@@ -45,15 +45,15 @@ Existing `Error` instances keep their identity, stack, and cause unless an error
 hook replaces them. Non-Error thrown values are wrapped in an `Error` with the
 original value as `cause`.
 
-## Use an error/result tuple
+## Use a data/error object
 
 Each HTTP method has a `safe` counterpart with the same arguments and preset shape:
 
 ```ts
-import { Http, ServiceError } from "@tuentyfaiv/http";
+import { Http, ServiceError } from "fetchzen";
 
 const api = Http.create("https://api.example.com", { cache: false });
-const [error, result] = await api.safe.get<{ id: number }>("/me");
+const { data: result, error } = await api.safe.get<{ id: number }>("/me");
 
 if (error) {
 	console.error(error.message);
@@ -65,10 +65,29 @@ if (error) {
 }
 ```
 
-The tuple is `[Error, undefined]` or `[undefined, result]`. Narrow the error before
-accessing `ServiceError`-specific properties. `safe` does not disable validation or
-error hooks. It wraps the HTTP helpers only: **`api.safe.request()` is not a safe
-tuple-returning primitive**; use a helper or catch `api.request()` yourself.
+The result is `{ data: result, error: undefined }` on success or
+`{ data: undefined, error: Error }` on failure. Both properties are readonly in
+the TypeScript union. `data` keeps the preset-shaped result unchanged; it does
+not unwrap `payload`. Narrow the error before accessing `ServiceError`-specific
+properties. `safe` does not disable validation or error hooks. It wraps the HTTP
+helpers and the low-level `request()` primitive through the same pipeline.
+
+```ts
+const { data, error: requestError } = await api.safe.request({
+	method: "GET",
+	endpoint: "/health",
+	responseType: "text",
+});
+
+if (!requestError) {
+	console.log(data.payload); // string
+}
+```
+
+`safe.request()` supports the same configuration, preset shapes, schema-output
+inference, and response-mode inference as `request()`. The ordinary `request()`
+still rejects on failure. Configure defaults and register hooks on `api`, not its
+safe facade.
 
 ## Reserved codes
 
@@ -88,7 +107,7 @@ A synchronous `thrower` **replaces** preset validation, including its HTTP statu
 check. Delegate to `presetThrower` to keep the usual checks:
 
 ```ts
-import { envelope, Http, presetThrower, ServiceError } from "@tuentyfaiv/http";
+import { envelope, Http, presetThrower, ServiceError } from "fetchzen";
 
 const api = Http.create("https://api.example.com", { cache: false });
 const fallback = presetThrower(envelope);
@@ -112,3 +131,4 @@ await api.get("/legacy", {
 Use the client's actual preset when constructing the fallback. For non-JSON
 responses, `json` is an empty object. Schema validation still follows the thrower.
 For reusable API rules, prefer [preset conventions](../presets/).
+Try [safe errors](../../examples/safe-errors/) or the low-level [safe request](../../examples/safe-request/).

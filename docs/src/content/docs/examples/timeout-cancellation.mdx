@@ -1,0 +1,34 @@
+---
+title: Timeout and cancellation
+description: Limit waiting and abort a client request.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+
+Pass a signal and a deadline to this site's delayed demo endpoint.
+
+```ts
+import { Http, envelope } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+});
+const controller = new AbortController();
+// Call controller.abort() from your Cancel control.
+try {
+  console.log(await api.get("delay", {
+    params: { ms: "1000" }, timeout: 500, signal: controller.signal,
+  }));
+} catch (error) {
+  console.error(error);
+}
+```
+
+<LiveExamples scenario="timing" />
+
+## What to notice
+
+A 500 ms deadline expires before a 1000 ms response. Increase it or cancel while waiting.
+The demo bounds delays to 3000 ms. Aborting stops client waiting, not server work already received.
+Use your own endpoint outside this demo.
+
+Next: [retries](../retries/) or [safe errors](../safe-errors/).

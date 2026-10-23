@@ -1,0 +1,32 @@
+---
+title: Configuration
+description: Update shared defaults and remove a hook.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+
+References to the same client share configuration. Create a private client for this site's demo API.
+
+```ts
+import { Http, envelope } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+});
+const shared = api;
+api.configure({ params: { name: "Ada" } });
+const remove = shared.hook("request", () => { console.log("request"); });
+try {
+  console.log(await shared.get("echo"));
+} finally {
+  remove();
+}
+```
+
+<LiveExamples scenario="configure" />
+
+## What to notice
+
+`shared` is an alias, not an independent client. It sees updated defaults.
+The hook returns a removal function. Each run uses a private client, without global credentials or cross-user state.
+
+Next: [hooks](../hooks/) or [JSON](../json/).

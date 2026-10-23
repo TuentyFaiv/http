@@ -62,7 +62,9 @@ export function createPreset<K extends ShapeName>(options: CreatePresetOptions<K
 		},
 
 		build<T>(context: ResponseContext): ApplyShape<K, T> {
-			return build<T>(context, (body) => (context.payload !== undefined ? context.payload : unwrapKeys(body, unwrap)));
+			return build<T>(context, (body) =>
+				Object.hasOwn(context, "payload") ? context.payload : unwrapKeys(body, unwrap)
+			);
 		},
 
 		extend(overrides) {

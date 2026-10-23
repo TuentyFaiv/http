@@ -1,0 +1,30 @@
+---
+title: Solicitud segura
+description: Usa la primitiva genérica de solicitud segura.
+---
+
+import LiveExamples from "../../../../components/live-examples.astro";
+
+Incluye el endpoint y el método en un objeto en lugar de elegir un método de conveniencia.
+
+```ts
+import { Http, problem } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: problem,
+});
+const { data, error } = await api.safe.request({
+  endpoint: "status", method: "GET",
+  params: { code: "422" }, retry: 0,
+});
+if (error) console.error(error);
+else console.log(data);
+```
+
+<LiveExamples scenario="safeRequest" />
+
+## Qué observar
+
+La primitiva tiene el mismo contrato data/error que `safe.get`.
+El endpoint `status` de demo devuelve intencionalmente el fallo elegido; reemplázalo por tu API para uso real.
+
+Continúa con [errores seguros](../safe-errors/) o [configuración](../configuration/).

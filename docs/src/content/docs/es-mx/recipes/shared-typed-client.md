@@ -8,7 +8,7 @@ sidebar:
 Exporta un cliente configurado desde un módulo en lugar de crearlo en cada llamada. Este ejemplo espera objetos y arreglos JSON sin envoltura, por eso selecciona `rest` de forma explícita.
 
 ```ts
-import { Http, rest } from "@tuentyfaiv/http";
+import { Http, rest } from "fetchzen";
 
 export interface User {
   id: string;
@@ -20,7 +20,6 @@ type UserQuery = { page: number };
 
 export const api = Http.create("https://api.example.com/v1", {
   preset: rest,
-  cache: false,
   timeout: 10_000,
   headers: { Accept: "application/json" },
 });
@@ -46,8 +45,66 @@ export async function createUser(input: CreateUser): Promise<User> {
 
 ## Decide qué compartir
 
-`Http.create()` guarda las instancias por URL base de forma predeterminada. Otra llamada con la misma URL devuelve el cliente existente e ignora la nueva configuración, incluso si cambia el preset o el `fetch` inyectado. `cache: false` evita ese registro; exportar el cliente sigue compartiendo la instancia del módulo.
+`Http.create(baseUrl, config?)` comparte clientes por la cadena exacta de la URL
+base de forma predeterminada. Una consulta compatible devuelve exactamente el mismo
+cliente y sus hooks; la configuración solo inicializa un cliente nuevo. Las llamadas
+posteriores no restablecen ni combinan valores predeterminados o hooks, incluido un
+`fetch` inyectado.
 
-En un servidor, crea un cliente independiente con `cache: false` por cada petición de usuario si los encabezados o los cierres de los hooks contienen credenciales. No guardes estado de un usuario en una instancia global del módulo.
+El preset original queda fijo durante toda la vida del cliente. Otro objeto preset
+explícito lanza un error aunque tenga la misma forma. Omitir `preset` afirma la
+forma predeterminada `envelope`, por lo que consultar un cliente con otra forma
+requiere pasar otra vez su preset original. Prefiere reutilizar la instancia tipada
+exportada; conserva el objeto de preset personalizado original en lugar de recrearlo
+con `extend()` en cada consulta.
 
-Continúa con [la renovación de autenticación](../auth-refresh/) o [las pruebas con fetch inyectado](../testing-injected-fetch/).
+```ts
+const sameApi = Http.create("https://api.example.com/v1", { preset: rest });
+console.log(sameApi === api); // true
+
+sameApi.configure({ timeout: 5_000 });
+// Las futuras solicitudes mediante api también usan el nuevo tiempo límite.
+```
+
+El registro solo vive en memoria, sin persistencia en el navegador ni uso compartido
+entre pestañas o procesos. Esto no protege contra XSS. `cache: false` crea un cliente
+privado sin leer ni escribir en el registro; exportarlo sigue compartiendo la
+instancia del módulo.
+
+## Actualiza los valores para futuras solicitudes
+
+Usa `api.configure(update)` en el cliente existente; devuelve `void`.
+Acepta `headers`, `params`, `secure`, `errorMessage`, `log`, `timeout`,
+`retry`, `fetch`, `paramsSerializer` y `logger`.
+
+```ts
+api.configure({
+  headers: { "Accept-Language": "en-US" },
+  params: { locale: "en-US" },
+  timeout: undefined,
+});
+```
+
+Los campos enviados reemplazan los valores anteriores
+(incluidas las colecciones completas de encabezados/parámetros); los omitidos se
+conservan y un `undefined` explícito restablece los valores de la biblioteca.
+Las opciones por solicitud siguen teniendo prioridad. Cada solicitud toma una
+instantánea de los valores y las listas de hooks al comenzar, así que los cambios
+afectan solicitudes posteriores, no pendientes. El estado capturado por los
+callbacks sigue siendo responsabilidad de la aplicación.
+
+`configure` no acepta `preset`, `cache` ni `hooks`. Para los hooks, usa
+[`hook(name, handler)` y su función de cancelación](../../guides/hooks/).
+Los encabezados/parámetros por solicitud se combinan con los predeterminados por clave.
+Pasa opciones de Fetch como `credentials`, `signal` o su opción de caché de respuestas
+`cache` a la solicitud, no a `create` ni a `configure`; esa caché es distinta del registro.
+
+## Aísla las peticiones del servidor
+
+En un servidor, crea un cliente privado con `cache: false` por cada petición de
+usuario para su configuración o hooks específicos. No guardes estado de un usuario
+en un cliente compartido global o de módulo. Esta opción de aislamiento también
+sirve para pruebas y varios clientes independientes con la misma URL.
+
+Continúa con [la renovación de autenticación](../auth-refresh/), [las pruebas con fetch inyectado](../testing-injected-fetch/)
+o el ejemplo de [configuración](../../examples/configuration/).

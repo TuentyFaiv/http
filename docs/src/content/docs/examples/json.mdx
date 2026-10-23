@@ -1,0 +1,27 @@
+---
+title: JSON and presets
+description: Send JSON and choose a response convention.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+
+Send JSON to this site's demo echo endpoint; replace the base URL with your API in an application.
+
+```ts
+import { Http, envelope } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+});
+const result = await api.post("echo/", JSON.stringify({ name: "Ada" }));
+console.log(result.payload);
+```
+
+<LiveExamples scenario="json" />
+
+## What to notice
+
+`envelope` unwraps `data`; `bare` and `problem` preserve the JSON body.
+Try GET and POST. The bounded demo echoes only string `name` and `message` fields.
+`secure: false` is for these public demos, not a recommendation for authenticated APIs.
+
+Next: [validation](../validation/) or [presets](../../guides/presets/).

@@ -1,0 +1,31 @@
+---
+title: Errores seguros
+description: Maneja fallos como resultados data/error.
+---
+
+import LiveExamples from "../../../../components/live-examples.astro";
+
+Usa un método seguro para recibir un resultado explícito en lugar de un error lanzado.
+
+```ts
+import { Http, problem } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: problem,
+});
+const { data, error } = await api.safe.get("status", {
+  params: { code: "422" }, retry: 0,
+});
+if (error) console.error(error);
+else console.log(data);
+```
+
+<LiveExamples scenario="safe" />
+
+## Qué observar
+
+El endpoint de demo devuelve intencionalmente 422, 429 o 503; no reintenta.
+`problem` lee los detalles de error RFC 9457. En caso de fallo, revisa `error`;
+en caso de éxito, `data` contiene la respuesta con la forma del preset.
+Reemplaza la URL base del demo por tu API para uso real.
+
+Continúa con [solicitud segura](../safe-request/) o [reintentos](../retries/).

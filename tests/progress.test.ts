@@ -151,4 +151,98 @@ describe("withProgress", () => {
 		expect(wrapped.headers.get("X-Test")).toBe("1");
 		await expect(wrapped.text()).resolves.toBe("body");
 	});
+
+	it.each(["gzip", "br", "deflate", "GZip"])(
+		"does not compare decoded bytes with %s encoded length",
+		async (encoding) => {
+			const events: HttpProgress[] = [];
+			const original = streamResponse(["decoded ", "body"], {
+				headers: { "Content-Encoding": encoding, "Content-Length": "2" },
+			});
+			await withProgress(original, (event) => events.push(event)).text();
+
+			expect(events.at(-1)?.loaded).toBe(12);
+			expect(events.every((event) => event.total === undefined && event.percent === undefined)).toBe(true);
+			expect(original.body?.locked).toBe(false);
+		}
+	);
+
+	it.each(["-1", "12.5", "1e2", "0x10", "NaN", "9007199254740992"])(
+		"ignores invalid Content-Length %s",
+		async (length) => {
+			const events: HttpProgress[] = [];
+			await withProgress(streamResponse(["body"], { headers: { "Content-Length": length } }), (event) =>
+				events.push(event)
+			).text();
+			expect(events.at(-1)?.total).toBeUndefined();
+		}
+	);
+
+	it("preserves metadata and native branding through repeated cloning", async () => {
+		const original = new Response("body");
+		Object.defineProperties(original, {
+			url: { value: "https://progress.test/final" },
+			redirected: { value: true },
+			type: { value: "cors" },
+		});
+		const wrapped = withProgress(original, () => {});
+		const clone = wrapped.clone();
+		const next = clone.clone();
+
+		for (const response of [wrapped, clone, next]) {
+			expect(response).toBeInstanceOf(Response);
+			expect(response.url).toBe(original.url);
+			expect(response.redirected).toBe(true);
+			expect(response.type).toBe("cors");
+		}
+		await expect(Promise.all([Response.prototype.text.call(wrapped), clone.text(), next.text()])).resolves.toEqual([
+			"body",
+			"body",
+			"body",
+		]);
+		expect(original.body?.locked).toBe(false);
+	});
+
+	it("releases the source reader after cancellation", async () => {
+		const cancelled: unknown[] = [];
+		const original = new Response(
+			new ReadableStream({
+				cancel(reason) {
+					cancelled.push(reason);
+				},
+			})
+		);
+		const wrapped = withProgress(original, () => {});
+		await wrapped.body?.cancel("stop");
+
+		expect(cancelled).toEqual(["stop"]);
+		expect(original.body?.locked).toBe(false);
+	});
+
+	it("cancels and releases the source if a progress callback throws", async () => {
+		const failure = new Error("callback failed");
+		const original = streamResponse(["body"]);
+		const wrapped = withProgress(original, () => {
+			throw failure;
+		});
+
+		await expect(wrapped.text()).rejects.toBe(failure);
+		expect(original.body?.locked).toBe(false);
+	});
+
+	it.each([undefined, "identity"])(
+		"uses indeterminate CORS totals unless identity encoding is visible (%s)",
+		async (encoding) => {
+			const original = streamResponse(["decoded body"], {
+				headers: { "Content-Length": "12", ...(encoding ? { "Content-Encoding": encoding } : {}) },
+			});
+			Object.defineProperty(original, "type", { value: "cors" });
+			const events: HttpProgress[] = [];
+
+			await withProgress(original, (event) => events.push(event)).text();
+
+			expect(events.at(-1)?.loaded).toBe(12);
+			expect(events.at(-1)?.total).toBe(encoding ? 12 : undefined);
+		}
+	);
 });

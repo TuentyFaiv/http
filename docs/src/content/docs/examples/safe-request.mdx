@@ -1,0 +1,30 @@
+---
+title: Safe request
+description: Use the generic safe request primitive.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+
+Put the endpoint and method in a request object instead of choosing a convenience method.
+
+```ts
+import { Http, problem } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: problem,
+});
+const { data, error } = await api.safe.request({
+  endpoint: "status", method: "GET",
+  params: { code: "422" }, retry: 0,
+});
+if (error) console.error(error);
+else console.log(data);
+```
+
+<LiveExamples scenario="safeRequest" />
+
+## What to notice
+
+The primitive has the same data/error contract as `safe.get`.
+This site's demo `status` endpoint deliberately returns the selected failure; replace it with your API for real usage.
+
+Next: [safe errors](../safe-errors/) or [configuration](../configuration/).

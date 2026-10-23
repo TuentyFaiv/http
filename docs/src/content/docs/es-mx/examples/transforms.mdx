@@ -1,0 +1,64 @@
+---
+title: Transformaciones
+description: Infiere la salida transformada de un esquema.
+---
+
+import LiveExamples from "../../../../components/live-examples.astro";
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+Elige una pestaña para transformar la respuesta con la misma biblioteca en el código y la demo.
+Consulta la [guía de validación](../../guides/validation/) para instalarla.
+
+<Tabs>
+<TabItem label="Zod">
+
+```ts
+import { Http, envelope } from "fetchzen";
+import { z } from "zod";
+
+const schema = z.object({ name: z.string().trim() }).transform(({ name }) => ({
+  greeting: `Hello, ${name}`,
+  characters: name.length,
+}));
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+});
+const result = await api.get("echo", { params: { name: "Ada" }, schema });
+console.log(result.payload.greeting, result.payload.characters);
+```
+
+<LiveExamples scenario="transform" validator="zod" />
+
+</TabItem>
+<TabItem label="Valibot">
+
+```ts
+import { Http, envelope } from "fetchzen";
+import * as v from "valibot";
+
+const schema = v.pipe(
+  v.object({ name: v.pipe(v.string(), v.trim()) }),
+  v.transform(({ name }) => ({
+    greeting: `Hello, ${name}`,
+    characters: name.length,
+  })),
+);
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+});
+const result = await api.get("echo", { params: { name: "Ada" }, schema });
+console.log(result.payload.greeting, result.payload.characters);
+```
+
+<LiveExamples scenario="transform" validator="valibot" />
+
+</TabItem>
+</Tabs>
+
+## Qué observar
+
+Prueba espacios alrededor del nombre: el saludo y el conteo usan el nombre sin esos espacios.
+El contenido inferido es `{ greeting: string; characters: number }`, no `{ name: string }`.
+El endpoint echo de este sitio tiene límites y proporciona la entrada; el esquema la transforma localmente.
+
+Continúa con [validación](../validation/) o [JSON](../json/).

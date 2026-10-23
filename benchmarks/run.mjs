@@ -229,10 +229,22 @@ const result = {
 };
 const destination = join(root, "docs/src/data/client-comparison.json");
 const serialized = `${JSON.stringify(result, null, "\t")}\n`;
-await Bun.write(join(output, "client-comparison.json"), serialized);
+const formatter = Bun.spawn(
+	[process.execPath, "x", "--no-install", "biome", "format", "--stdin-file-path", destination],
+	{ cwd: root, stdin: new Blob([serialized]), stdout: "pipe", stderr: "pipe" }
+);
+const [formatted, diagnostics, formatStatus] = await Promise.all([
+	new Response(formatter.stdout).text(),
+	new Response(formatter.stderr).text(),
+	formatter.exited,
+]);
+if (formatStatus !== 0 || JSON.stringify(JSON.parse(formatted)) !== JSON.stringify(result)) {
+	throw new Error(`Comparison formatting failed or changed measurements: ${diagnostics}`);
+}
+await Bun.write(join(output, "client-comparison.json"), formatted);
 await mkdir(join(root, "docs/src/data"), { recursive: true });
 // Write the completed result only after every build, request and provenance check succeeds.
-await Bun.write(join(output, "homepage-result.tmp"), serialized);
+await Bun.write(join(output, "homepage-result.tmp"), formatted);
 await rename(join(output, "homepage-result.tmp"), destination);
 process.stdout.write(
 	`${clients.map((client) => `${client.name}: ${client.bundleBytes} B / ${client.gzipBytes} B gzip; ${client.medianUs.toFixed(3)} us/op median`).join("\n")}\nWrote docs/src/data/client-comparison.json\n`

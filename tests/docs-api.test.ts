@@ -30,6 +30,103 @@ afterEach(() => {
 });
 
 describe("docs demo API", () => {
+	it("acknowledges only bytes actually read through EOF, not claimed Content-Length", async () => {
+		let source!: ReadableStreamDefaultController<Uint8Array>;
+		let settled = false;
+		const pending = handleDemo(
+			request("upload-chunk", {
+				method: "POST",
+				headers: { "Content-Type": "application/octet-stream", "Content-Length": "1" },
+				body: new ReadableStream<Uint8Array>({
+					start(controller) {
+						source = controller;
+					},
+				}),
+				...{ duplex: "half" },
+			})
+		).then((response) => {
+			settled = true;
+			return response;
+		});
+		source.enqueue(new Uint8Array(3));
+		await Promise.resolve();
+		expect(settled).toBe(false);
+		source.enqueue(new Uint8Array(2));
+		source.close();
+		const response = await pending;
+		expect(await response.json()).toEqual({ data: { receivedBytes: 5, stored: false } });
+		expect(response.headers.get("Cache-Control")).toBe("no-store, no-transform");
+	});
+
+	it("accepts empty and exact-limit chunks without storing them", async () => {
+		for (const size of [0, 262_144]) {
+			const response = await handleDemo(
+				request("upload-chunk", {
+					method: "POST",
+					headers: { "Content-Type": "application/octet-stream" },
+					body: new Uint8Array(size),
+				})
+			);
+			expect(await response.json()).toEqual({ data: { receivedBytes: size, stored: false } });
+		}
+	});
+
+	it("rejects oversized chunks and cancels the reader without issuing a receipt", async () => {
+		const cancel = vi.fn();
+		const init = streamedBody([new Uint8Array(262_145), new Uint8Array(1)], cancel);
+		init.headers = { "Content-Type": "application/octet-stream", "Content-Length": "1" };
+		const response = await handleDemo(request("upload-chunk", init));
+		expect(response.status).toBe(413);
+		expect(cancel).toHaveBeenCalledOnce();
+		expect(await response.json()).not.toHaveProperty("data.receivedBytes");
+	});
+
+	it("limits chunk requests to raw POST bytes", async () => {
+		const wrongMethod = await handleDemo(request("upload-chunk"));
+		expect(wrongMethod.status).toBe(405);
+		expect(wrongMethod.headers.get("Allow")).toBe("POST");
+		const wrongType = await handleDemo(
+			request("upload-chunk", { method: "POST", body: "{}", headers: { "Content-Type": "application/json" } })
+		);
+		expect(wrongType.status).toBe(415);
+		expect((await handleDemo(request("upload-chunk", { headers: { Origin: "https://evil.test" } }))).status).toBe(403);
+	});
+
+	it("parses bounded multipart and returns counts without filenames or field contents", async () => {
+		const form = new FormData();
+		form.set("file", new File(["hello"], "../../private.txt"));
+		form.set("name", "Ada");
+		const response = await handleDemo(request("multipart", { method: "POST", body: form }));
+		expect(await response.json()).toEqual({
+			data: { fileBytes: 5, fieldCharacters: 3, parts: 2, stored: false },
+		});
+	});
+
+	it("rejects malformed, extra-part and oversized multipart bodies", async () => {
+		expect((await handleDemo(request("multipart", { method: "POST", body: "bad" }))).status).toBe(415);
+		expect(
+			(
+				await handleDemo(
+					request("multipart", {
+						method: "POST",
+						body: "bad",
+						headers: { "Content-Type": "multipart/form-data; boundary=x" },
+					})
+				)
+			).status
+		).toBe(400);
+		const form = new FormData();
+		form.set("file", new File(["hello"], "demo.txt"));
+		form.set("name", "Ada");
+		form.append("secret", "not reflected");
+		expect((await handleDemo(request("multipart", { method: "POST", body: form }))).status).toBe(400);
+		const cancel = vi.fn();
+		const init = streamedBody([new Uint8Array(1024 * 1024 + 16 * 1024 + 1), new Uint8Array(1)], cancel);
+		init.headers = { "Content-Type": "multipart/form-data; boundary=x", "Content-Length": "1" };
+		expect((await handleDemo(request("multipart", init))).status).toBe(413);
+		expect(cancel).toHaveBeenCalledOnce();
+	});
+
 	it("echoes only safe fields and applies security headers", async () => {
 		const response = await handleDemo(
 			request("echo?name=Ada&token=secret&message=Hi", {

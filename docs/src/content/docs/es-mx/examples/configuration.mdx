@@ -1,0 +1,32 @@
+---
+title: Configuración
+description: Actualiza valores compartidos y elimina un hook.
+---
+
+import LiveExamples from "../../../../components/live-examples.astro";
+
+Las referencias al mismo cliente comparten configuración. Crea un cliente privado para la API de demo de este sitio.
+
+```ts
+import { Http, envelope } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+});
+const shared = api;
+api.configure({ params: { name: "Ada" } });
+const remove = shared.hook("request", () => { console.log("request"); });
+try {
+  console.log(await shared.get("echo"));
+} finally {
+  remove();
+}
+```
+
+<LiveExamples scenario="configure" />
+
+## Qué observar
+
+`shared` es un alias, no un cliente independiente. Recibe los valores actualizados.
+El hook devuelve una función para eliminarlo. Cada ejecución usa un cliente privado, sin credenciales globales ni estado entre personas.
+
+Continúa con [hooks](../hooks/) o [JSON](../json/).

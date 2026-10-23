@@ -1,21 +1,37 @@
 ---
 import DefaultLanguageSelect from "@astrojs/starlight/components/LanguageSelect.astro";
-
-const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const isSpanish = Astro.locals.starlightRoute.lang === "es-MX";
-const pathname = Astro.url.pathname.slice(base.length);
-const alternate = isSpanish ? `${base}${pathname.slice("/es-mx".length) || "/"}` : `${base}/es-mx${pathname}`;
 ---
 
-<div class="http-language__desktop">
+<div class="fz-language-select">
 	<DefaultLanguageSelect />
 </div>
-<a
-	class="http-language__mobile"
-	href={alternate}
-	hreflang={isSpanish ? "en-US" : "es-MX"}
-	lang={isSpanish ? "en-US" : "es-MX"}
-	aria-label={isSpanish ? "Read this page in English (US)" : "Leer esta página en español (México)"}
->
-	{isSpanish ? "EN" : "ES"}
-</a>
+
+<style>
+	.fz-language-select {
+		display: contents;
+	}
+
+	/* Keep Starlight's locale URLs, translated label, and bfcache restoration on mobile too. */
+	@media (max-width: 49.999rem) {
+		:global(header.header) .fz-language-select :global(select) {
+			width: 2.75rem;
+			min-width: 2.75rem;
+			padding-inline: 0;
+			margin-inline: 0;
+			color: transparent;
+		}
+
+		:global(header.header) .fz-language-select :global(option) {
+			color: var(--fz-ink);
+			background: var(--fz-page);
+		}
+
+		:global(header.header) .fz-language-select :global(.label-icon) {
+			inset-inline-start: 0.75rem;
+		}
+
+		:global(header.header) .fz-language-select :global(.caret) {
+			display: none;
+		}
+	}
+</style>

@@ -1,8 +1,10 @@
-import type { DemoContext } from "./demo-request-helper";
+/// <reference types="astro/client" />
 
-import { exampleText, scenarios } from "../i18n/examples";
-import { errorResult, requestDemo } from "./demo-request-helper";
-import { downloadDemo, streamDemo, uploadDemo } from "./demo-transfer-helper";
+import type { DemoContext } from "./demo-request-helper.js";
+
+import { exampleText, scenarios } from "../i18n/examples.js";
+import { errorResult, requestDemo } from "./demo-request-helper.js";
+import { confirmedUploadDemo, downloadDemo, multipartDemo, streamDemo, uploadDemo } from "./demo-transfer-helper.js";
 
 const INDENT = 2;
 const MAX_LOGS = 80;
@@ -39,55 +41,94 @@ function mount(root: HTMLElement) {
 	const text = exampleText(root.lang);
 	const form = required<HTMLFormElement>(root, "form");
 	const fields = required<HTMLFieldSetElement>(root, "fieldset");
-	const scenarioSelect = required<HTMLSelectElement>(root, "[data-scenario]");
+	const scenario = scenarios.find((value) => value === root.dataset.scenario);
+	if (!scenario) {
+		throw new Error("Unknown example");
+	}
 	const run = required<HTMLButtonElement>(root, "[data-run]");
 	const cancel = required<HTMLButtonElement>(root, "[data-cancel]");
+	const save = required<HTMLButtonElement>(root, "[data-save]");
 	const state = required<HTMLElement>(root, "[data-state]");
+	const output = required<HTMLElement>(root, ".live-output");
 	const result = required<HTMLElement>(root, "[data-result]");
 	const log = required<HTMLElement>(root, "[data-log]");
 	const progressArea = required<HTMLElement>(root, "[data-progress-area]");
 	const progress = required<HTMLProgressElement>(root, "progress");
 	const progressText = required<HTMLElement>(root, "[data-progress-text]");
 	let active: AbortController | undefined;
-	const updateFields = () => {
-		for (const label of root.querySelectorAll<HTMLElement>("[data-for]")) {
-			const visible = label.dataset.for?.split(" ").includes(scenarioSelect.value) ?? false;
-			label.hidden = !visible;
-			for (const input of label.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
-				"input, select, textarea"
-			)) {
-				input.disabled = !visible;
-			}
+	let savedBlob: Blob | undefined;
+	let downloadUrl: string | undefined;
+	let progressComplete = false;
+	const clearDownload = () => {
+		savedBlob = undefined;
+		save.hidden = true;
+		if (downloadUrl) {
+			URL.revokeObjectURL(downloadUrl);
+			downloadUrl = undefined;
 		}
-		const transfer = ["upload", "download", "stream"].includes(scenarioSelect.value);
-		required<HTMLElement>(root, '[data-source="request"]').hidden = transfer;
-		required<HTMLElement>(root, '[data-source="transfer"]').hidden = !transfer;
+	};
+	// Keep one URL for the available blob; revoking immediately after click can race the browser's download.
+	save.addEventListener("click", () => {
+		if (!savedBlob) {
+			return;
+		}
+		downloadUrl ??= URL.createObjectURL(savedBlob);
+		const anchor = document.createElement("a");
+		anchor.href = downloadUrl;
+		anchor.download = "demo.bin";
+		anchor.click();
+	});
+	const method = form.elements.namedItem("method") as HTMLSelectElement | null;
+	const updateMethod = () => {
+		if (!method) {
+			return;
+		}
+		const post = method.value === "POST";
+		const name = required<HTMLElement>(root, "[data-json-name]");
+		const body = required<HTMLElement>(root, "[data-json-body]");
+		name.hidden = post;
+		required<HTMLInputElement>(name, "input").disabled = post;
+		body.hidden = !post;
+		required<HTMLTextAreaElement>(body, "textarea").disabled = !post;
 	};
 	const stop = () => {
 		active?.abort();
+		progressComplete = false;
+		clearDownload();
 	};
 	const reset = () => {
+		const restoreRunFocus = document.activeElement === cancel;
 		fields.disabled = false;
 		run.disabled = false;
+		run.setAttribute("aria-disabled", "false");
+		form.setAttribute("aria-busy", "false");
+		output.setAttribute("aria-busy", "false");
 		cancel.disabled = true;
-		progressArea.hidden = true;
+		if (restoreRunFocus) {
+			run.focus({ preventScroll: true });
+		}
+		progressArea.hidden = !(savedBlob || (scenario === "confirmedUpload" && progressComplete));
+		// Keep final byte counts visible without leaving a completed download's unknown-total bar animating.
+		progress.hidden = savedBlob !== undefined && !progress.hasAttribute("value");
 	};
-	const showProgress = (loaded: number, total?: number) => {
+	const showProgress = (loaded: number, total?: number, done = false) => {
 		progressArea.hidden = false;
-		progress.setAttribute("aria-label", text.progress);
-		if (total !== undefined && total > 0) {
-			progress.max = total;
-			progress.value = loaded;
-			progressText.textContent = `${loaded} / ${total} ${text.bytes} (${Math.round((loaded / total) * PERCENT)}%)`;
-		} else {
+		progress.setAttribute("aria-label", scenario === "confirmedUpload" ? text.confirmedProgress : text.progress);
+		if (total === undefined) {
 			progress.removeAttribute("value");
 			progressText.textContent = `${loaded} ${text.bytes} · ${text.unknown}`;
+			return;
 		}
+		progress.max = total || 1;
+		progress.value = total === 0 ? Number(done) : loaded;
+		const percent = Math.min(done ? PERCENT : PERCENT - 1, Math.round((progress.value / progress.max) * PERCENT));
+		progressText.textContent = `${loaded} / ${total} ${text.bytes} (${percent}%)`;
 	};
 	const showFailure = (error: unknown, controller: AbortController) => {
 		if (active !== controller) {
 			return;
 		}
+		progressComplete = false;
 		state.textContent = controller.signal.aborted ? text.cancelled : text.failed;
 		if (!controller.signal.aborted) {
 			result.textContent = display(errorResult(error, text));
@@ -98,11 +139,9 @@ function mount(root: HTMLElement) {
 		if (active) {
 			return;
 		}
-		const scenario = scenarios.find((value) => value === scenarioSelect.value);
-		if (!scenario) {
-			return;
-		}
 		const controller = new AbortController();
+		clearDownload();
+		progressComplete = false;
 		active = controller;
 		const current = () => active === controller && !controller.signal.aborted;
 		const entries: string[] = [];
@@ -122,22 +161,33 @@ function mount(root: HTMLElement) {
 					result.textContent = display(value);
 				}
 			},
-			progress(loaded, total) {
+			progress(loaded, total, done) {
 				if (current()) {
-					showProgress(loaded, total);
+					progressComplete = done === true;
+					showProgress(loaded, total, done);
+				}
+			},
+			download(blob) {
+				if (current()) {
+					savedBlob = blob;
+					save.hidden = false;
 				}
 			},
 		};
 		fields.disabled = true;
-		run.disabled = true;
+		// Keep keyboard focus on Run; the active controller above guards repeat submissions.
+		run.setAttribute("aria-disabled", "true");
+		form.setAttribute("aria-busy", "true");
+		output.setAttribute("aria-busy", "true");
 		cancel.disabled = false;
 		state.textContent = text.running;
 		result.textContent = text.empty;
 		log.textContent = text.noEvents;
 		progress.removeAttribute("value");
-		progressArea.hidden = false;
+		progress.hidden = false;
+		progressArea.hidden = !["upload", "multipart", "download", "confirmedUpload"].includes(scenario);
 		progress.setAttribute("aria-label", text.running);
-		progressText.textContent = scenario === "upload" ? text.uploading : text.running;
+		progressText.textContent = scenario === "upload" || scenario === "multipart" ? text.uploading : text.running;
 		context.log(`${text.scenario}: ${text[scenario]}`);
 		try {
 			const value = await executeDemo(scenario, context);
@@ -156,7 +206,7 @@ function mount(root: HTMLElement) {
 			}
 		}
 	});
-	scenarioSelect.addEventListener("change", updateFields);
+	method?.addEventListener("change", updateMethod);
 	cancel.addEventListener("click", stop);
 	const leave = () => {
 		stop();
@@ -173,11 +223,15 @@ function mount(root: HTMLElement) {
 		},
 		{ once: true }
 	);
-	updateFields();
+	updateMethod();
 	reset();
 }
 async function executeDemo(scenario: (typeof scenarios)[number], context: DemoContext) {
 	switch (scenario) {
+		case "confirmedUpload":
+			return await confirmedUploadDemo(context);
+		case "multipart":
+			return await multipartDemo(context);
 		case "upload":
 			return await uploadDemo(context);
 		case "download":

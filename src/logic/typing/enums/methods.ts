@@ -1,5 +1,5 @@
 // biome-ignore lint/style/useNamingConvention: const-object stand-in for an enum (noEnum); PascalCase is the public api
-const HttpMethod = {
+const HttpMethod = /* @__PURE__ */ Object.freeze({
 	GET: "GET",
 	HEAD: "HEAD",
 	POST: "POST",
@@ -7,10 +7,10 @@ const HttpMethod = {
 	DELETE: "DELETE",
 	PATCH: "PATCH",
 	OPTIONS: "OPTIONS",
-} as const;
+} as const);
 
 // biome-ignore lint/style/useNamingConvention: const-object stand-in for an enum (noEnum); PascalCase is the public api
-const HttpMethodLower = {
+const HttpMethodLower = /* @__PURE__ */ Object.freeze({
 	get: "get",
 	head: "head",
 	post: "post",
@@ -18,16 +18,11 @@ const HttpMethodLower = {
 	delete: "delete",
 	patch: "patch",
 	options: "options",
-} as const;
+} as const);
 
 /** Methods whose second argument is config, because they carry no body. */
 // biome-ignore lint/style/useNamingConvention: const-object stand-in for an enum (noEnum); PascalCase is the public api
-const HttpMethodBodyless = [HttpMethodLower.get, HttpMethodLower.head] as const;
-
-Object.freeze(HttpMethod);
-Object.freeze(HttpMethodLower);
-Object.seal(HttpMethod);
-Object.seal(HttpMethodLower);
+const HttpMethodBodyless = /* @__PURE__ */ (() => [HttpMethodLower.get, HttpMethodLower.head] as const)();
 
 export type HttpMethods = (typeof HttpMethod)[keyof typeof HttpMethod];
 export type HttpMethodsLower = (typeof HttpMethodLower)[keyof typeof HttpMethodLower];

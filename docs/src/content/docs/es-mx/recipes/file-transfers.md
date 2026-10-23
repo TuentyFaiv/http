@@ -8,8 +8,8 @@ sidebar:
 Usa `FormData` para cargas multipart y un `responseType` explícito para las descargas. Estas funciones están pensadas para una aplicación en el navegador; el endpoint de carga devuelve JSON `{ "id": "..." }`.
 
 ```ts
-import { Http, rest } from "@tuentyfaiv/http";
-import type { HttpProgressHandler } from "@tuentyfaiv/http";
+import { Http, rest } from "fetchzen";
+import type { HttpProgressHandler } from "fetchzen";
 
 const api = Http.create("https://api.example.com", {
   preset: rest,
@@ -43,14 +43,22 @@ export async function downloadFile(
 
 ## Progreso y memoria
 
-- `onDownloadProgress` recibe `{ loaded, total?, percent?, done }`. `loaded` cuenta bytes; `total` y `percent` dependen de un `Content-Length` utilizable. Si no hay total, muestra un indicador indeterminado. La compresión puede hacer que la longitud declarada difiera de los bytes leídos.
-- El progreso de carga **no** está disponible. La promesa de carga se resuelve después de leer y validar la respuesta, no como un evento de progreso de subida.
+Los cuerpos de solicitud `ReadableStream` dependen del entorno. El cliente agrega
+`duplex: "half"` si se omite y lo pasa a Fetch nativo o personalizado; también
+puedes indicarlo explícitamente. Esto no habilita cargas en streaming en navegadores
+que no las admiten. No ofrece progreso de carga ni cargas reanudables.
+
+- `onDownloadProgress` recibe `{ loaded, total?, percent?, done }`. `loaded` cuenta bytes; `total` y `percent` dependen de un `Content-Length` utilizable. Un `Content-Encoding` distinto de identity deja ambos indefinidos porque la compresión puede hacer que la longitud declarada difiera de los bytes leídos. Una respuesta CORS sin un encabezado de codificación visible también tiene un total desconocido; un servidor de otro origen que no comprime puede enviar y exponer `Content-Encoding: identity`. Si no hay total, muestra un indicador indeterminado.
+- Fetch nativo **no** ofrece callbacks de transferencia de carga. Las cargas directas y multipart mantienen una espera indeterminada hasta su respuesta. Usa [`uploadConfirmed`](../confirmed-uploads/) con un endpoint de fragmentos compatible para progreso confirmado; no es progreso de transporte ni división automática para un endpoint ordinario.
 - `responseType: "blob"` guarda toda la descarga en memoria. Si necesitas bytes, combina `get<ArrayBuffer>` con `responseType: "arrayBuffer"`.
 - Para descargas grandes, usa `get<ReadableStream<Uint8Array> | null>` con `responseType: "stream"` y consume o cancela el stream devuelto. La petición se resuelve antes de terminar la lectura; también debes manejar los errores de lectura. El progreso avanza al consumir el stream, no solo al recibir la respuesta inicial.
 - Las respuestas binarias y de tipo stream no se clonan de forma predeterminada. Usa el `data` devuelto en lugar de intentar leer otra vez el cuerpo de la respuesta después de una descarga almacenada en memoria.
+- La envoltura de progreso y los clones conservan `Response.url`, `redirected` y `type`; no inventan un total conocido para respuestas comprimidas.
 
 Para mostrar un blob descargado, crea una URL de objeto con `URL.createObjectURL(blob)` y libérala con `URL.revokeObjectURL(url)` cuando dejes de usarla.
 
 Forzar un tipo de respuesta binario también afecta las respuestas de error. `rest` sigue rechazando los estados HTTP de fallo, pero un cuerpo de error JSON no se interpreta como JSON si seleccionas `responseType: "blob"`.
 
 Consulta también: [cancelación de peticiones obsoletas](../cancelling-stale-requests/).
+Prueba [carga de archivos](../../examples/file-upload/), [descarga](../../examples/download/)
+o [streaming](../../examples/streaming/).

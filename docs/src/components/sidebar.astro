@@ -1,0 +1,24 @@
+---
+import DefaultSidebar from "@astrojs/starlight/components/Sidebar.astro";
+
+import PenIcon from "./pen-icon.astro";
+
+const iconSize = 20;
+---
+
+<a class="fz-content-link" data-content-link href="#_top">
+	{Astro.locals.t("skipLink.label")}
+	<PenIcon name="arrow-right" size={iconSize} />
+</a>
+<DefaultSidebar />
+
+<script>
+	document.querySelector<HTMLAnchorElement>("[data-content-link]")?.addEventListener("click", () => {
+		// Match the native menu's expanded state, then focus the actual destination.
+		document.querySelector("starlight-menu-button")?.setAttribute("aria-expanded", "false");
+		document.body.removeAttribute("data-mobile-menu-expanded");
+		const title = document.getElementById("_top");
+		title?.setAttribute("tabindex", "-1");
+		title?.focus({ preventScroll: true });
+	});
+</script>

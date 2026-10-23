@@ -1,0 +1,29 @@
+---
+title: Multipart
+description: Envía un archivo y campos con FormData.
+---
+
+import LiveExamples from "../../../../components/live-examples.astro";
+
+Usa `FormData` para archivos y campos con nombre juntos. Este código usa el endpoint de demo de este sitio.
+
+```ts
+import { Http, bare } from "fetchzen";
+const body = new FormData();
+body.set("file", new File(["Hello"], "demo.txt"));
+body.set("name", "Ada");
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: bare,
+});
+console.log(await api.post("multipart/", body));
+```
+
+<LiveExamples scenario="multipart" />
+
+## Qué observar
+
+No establezcas `Content-Type` manualmente: Fetch proporciona el boundary multipart.
+El demo acotado devuelve conteos y descarta archivos y campos sin almacenarlos.
+El límite de archivo es 1 MiB; Fetch del navegador no informa progreso de carga.
+
+Continúa con [carga sin transformar](../file-upload/) o [descarga](../download/).

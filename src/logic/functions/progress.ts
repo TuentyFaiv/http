@@ -1,6 +1,7 @@
 import type { HttpProgress, HttpProgressHandler } from "../typing/classes/http.typing.js";
 
 const PERCENT = 100;
+const DECIMAL_LENGTH = /^\d+$/;
 
 const STATUS_SWITCHING_PROTOCOLS = 101;
 const STATUS_EARLY_HINTS = 103;
@@ -16,6 +17,39 @@ const NULL_BODY = new Set([
 	STATUS_RESET_CONTENT,
 	STATUS_NOT_MODIFIED,
 ]);
+
+function cloneWithMetadata(this: Response): Response {
+	return preserveMetadata(Response.prototype.clone.call(this), this);
+}
+
+/** Keep native Response branding and preserve metadata through subsequent clones. */
+function preserveMetadata(response: Response, source: Response): Response {
+	Object.defineProperties(response, {
+		url: { value: source.url },
+		redirected: { value: source.redirected },
+		type: { value: source.type },
+		clone: { value: cloneWithMetadata, writable: true, configurable: true },
+	});
+	return response;
+}
+
+function contentLength(response: Response): number | undefined {
+	const encoding = response.headers.get("Content-Encoding");
+	if (response.type === "cors" && !encoding) {
+		// CORS exposes Content-Length by default, but may hide an encoded representation's Content-Encoding.
+		return undefined;
+	}
+	if (encoding && encoding.trim().toLowerCase() !== "identity") {
+		// Fetch yields decoded bytes, while Content-Length describes the encoded representation.
+		return undefined;
+	}
+	const header = response.headers.get("Content-Length")?.trim();
+	if (!(header && DECIMAL_LENGTH.test(header))) {
+		return undefined;
+	}
+	const length = Number(header);
+	return Number.isSafeInteger(length) && length > 0 ? length : undefined;
+}
 
 function toProgress(loaded: number, total: number | undefined, done: boolean): HttpProgress {
 	return {
@@ -38,36 +72,59 @@ export function withProgress(response: Response, onProgress: HttpProgressHandler
 		return response;
 	}
 
-	const header = Number(response.headers.get("Content-Length"));
-	const total = Number.isFinite(header) && header > 0 ? header : undefined;
+	const total = contentLength(response);
 	const reader = response.body.getReader();
 
 	let loaded = 0;
+	let ended = false;
 
 	const stream = new ReadableStream<Uint8Array>({
 		async pull(controller) {
-			const { done, value } = await reader.read();
+			try {
+				const { done, value } = await reader.read();
+				if (ended) {
+					return;
+				}
+				if (done) {
+					onProgress(toProgress(loaded, total, true));
+					ended = true;
+					reader.releaseLock();
+					controller.close();
+					return;
+				}
 
-			if (done) {
-				controller.close();
-				onProgress(toProgress(loaded, total, true));
-
-				return;
+				loaded += value.byteLength;
+				onProgress(toProgress(loaded, total, false));
+				if (!ended) {
+					controller.enqueue(value);
+				}
+			} catch (error) {
+				if (!ended) {
+					ended = true;
+					// Cancellation may wait for a tee sibling; do not block reporting the original error.
+					reader.cancel(error).catch(() => {
+						// Cleanup must not replace the read or progress callback error.
+					});
+					reader.releaseLock();
+					controller.error(error);
+				}
 			}
-
-			loaded += value.byteLength;
-			onProgress(toProgress(loaded, total, false));
-			controller.enqueue(value);
 		},
 
 		cancel(reason) {
-			return reader.cancel(reason);
+			ended = true;
+			const cancelled = reader.cancel(reason);
+			reader.releaseLock();
+			return cancelled;
 		},
 	});
 
-	return new Response(stream, {
-		status: response.status,
-		statusText: response.statusText,
-		headers: response.headers,
-	});
+	return preserveMetadata(
+		new Response(stream, {
+			status: response.status,
+			statusText: response.statusText,
+			headers: response.headers,
+		}),
+		response
+	);
 }

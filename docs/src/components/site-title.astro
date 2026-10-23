@@ -1,12 +1,31 @@
 ---
-import HttpLogo from "../assets/http-logo.svg";
-import HttpSymbol from "../assets/http-symbol.svg";
+import BrandMark from "./brand-mark.astro";
 
 const { siteTitle, siteTitleHref } = Astro.locals.starlightRoute;
+const brandMarkSize = 36;
 ---
 
-<a href={siteTitleHref} class="http-brand">
-	<HttpSymbol class="http-brand__symbol" aria-hidden="true" focusable="false" width="32" height="32" />
-	<HttpLogo aria-hidden="true" focusable="false" width="94" height="36" />
+<a href={siteTitleHref} class="http-brand fz-site-title">
+	<BrandMark size={brandMarkSize} class="http-brand__symbol" />
+	<span class="http-brand__name" aria-hidden="true" translate="no">fetchzen ~</span>
 	<span class="sr-only" translate="no">{siteTitle}</span>
 </a>
+
+<style>
+	.fz-site-title {
+		min-height: 2.75rem;
+		color: var(--fz-violet);
+	}
+
+	.fz-site-title .http-brand__name {
+		font-family: var(--fz-font-display, "Caveat Variable", cursive);
+		font-size: 2rem;
+		font-weight: 700;
+		line-height: 1.1;
+		letter-spacing: normal;
+	}
+
+	.fz-site-title:hover {
+		color: var(--fz-violet-hover);
+	}
+</style>

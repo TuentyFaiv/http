@@ -5,6 +5,17 @@
 	margin-inline: auto;
 }
 
+/* The title rule belongs to the reading column, not the full viewport behind the rails. */
+[data-has-sidebar] .content-panel + .content-panel {
+	padding-block-start: 0;
+	border-top: 0;
+}
+
+[data-has-sidebar] .content-panel + .content-panel > .sl-container {
+	padding-block-start: 1.5rem;
+	border-block-start: 1px solid var(--http-border);
+}
+
 :root[data-has-sidebar] {
 	--sl-content-inline-start: 0rem;
 	--sl-mobile-toc-height: 3.5rem;

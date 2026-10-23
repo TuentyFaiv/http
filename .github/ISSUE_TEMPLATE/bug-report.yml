@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible problem in @tuentyfaiv/http
+description: Report a reproducible problem in fetchzen
 title: "[Bug]: "
 labels:
   - bug
@@ -12,7 +12,7 @@ body:
     id: version
     attributes:
       label: Package version
-      description: Which version of @tuentyfaiv/http are you using?
+      description: Which version of fetchzen are you using?
       placeholder: 0.1.15
     validations:
       required: true

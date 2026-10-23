@@ -1,0 +1,523 @@
+/* biome-ignore-all lint/style/noDescendingSpecificity: Each native component has a separate parent; state overrides intentionally follow its base rules. */
+/* Starlight 0.39.3: keep native markup, labels, and scripts; replace only its artwork.
+ * --fz-icon-* is generated from PenIcon by starlight-head.astro, never copied paths.
+ * Keep these selectors scoped to documentation chrome, not landing/live-example SVGs.
+ */
+:root {
+	--sl-menu-button-size: 2.75rem;
+}
+
+/* SVG backgrounds remain currentColor masks even when ThemeProvider swaps their children. */
+:where(
+	.content-panel > .sl-container > p.sl-flex > svg,
+	starlight-menu-button button > svg,
+	starlight-theme-select svg.icon,
+	starlight-lang-select svg.icon,
+	site-search button[data-open-modal] > svg,
+	.sidebar-content summary > svg.caret,
+	mobile-starlight-toc .toggle > svg.caret,
+	.pagination-links a > svg,
+	.meta > a > svg,
+	.social-icons a[rel="me"] > svg,
+	.sl-anchor-icon > svg,
+	.starlight-aside__icon,
+	.sl-link-card > svg.icon,
+	a.kudos > svg
+) {
+	flex-shrink: 0;
+	width: 1.25rem;
+	height: 1.25rem;
+	forced-color-adjust: none;
+	background-color: currentColor;
+	-webkit-mask: var(--fz-control-icon) center / contain no-repeat;
+	mask: var(--fz-control-icon) center / contain no-repeat;
+	mask-mode: alpha;
+}
+
+:is(
+		.content-panel > .sl-container > p.sl-flex > svg,
+		starlight-menu-button button > svg,
+		starlight-theme-select svg.icon,
+		starlight-lang-select svg.icon,
+		site-search button[data-open-modal] > svg,
+		.sidebar-content summary > svg.caret,
+		mobile-starlight-toc .toggle > svg.caret,
+		.pagination-links a > svg,
+		.meta > a > svg,
+		.social-icons a[rel="me"] > svg,
+		.sl-anchor-icon > svg,
+		.starlight-aside__icon,
+		.sl-link-card > svg.icon,
+		a.kudos > svg
+	)
+	> * {
+	display: none;
+}
+
+starlight-menu-button .open-menu {
+	--fz-control-icon: var(--fz-icon-menu);
+}
+
+starlight-menu-button .close-menu {
+	--fz-control-icon: var(--fz-icon-close);
+}
+
+site-search button[data-open-modal] > svg {
+	--fz-control-icon: var(--fz-icon-search);
+}
+
+starlight-theme-select .label-icon {
+	--fz-control-icon: var(--fz-icon-sun);
+}
+
+:root[data-theme="dark"] starlight-theme-select .label-icon {
+	--fz-control-icon: var(--fz-icon-moon);
+}
+
+starlight-lang-select .label-icon {
+	--fz-control-icon: var(--fz-icon-language);
+}
+
+starlight-theme-select .caret,
+starlight-lang-select .caret,
+.sidebar-content summary > .caret,
+mobile-starlight-toc .toggle > .caret {
+	--fz-control-icon: var(--fz-icon-chevron-down);
+}
+
+.sidebar-content summary > .caret {
+	transform: rotate(-90deg);
+	transition: none;
+}
+
+.sidebar-content:dir(rtl) summary > .caret {
+	transform: rotate(90deg);
+}
+
+.sidebar-content details[open] > summary > .caret {
+	transform: none;
+}
+
+mobile-starlight-toc details .toggle > .caret {
+	transform: none;
+	transition: none;
+}
+
+mobile-starlight-toc details[open] .toggle > .caret {
+	transform: rotate(180deg);
+}
+
+.pagination-links a > svg,
+.sl-link-card > svg.icon {
+	--fz-control-icon: var(--fz-icon-arrow-right);
+	width: 1.5rem;
+	height: 1.5rem;
+}
+
+.pagination-links [rel="prev"] > svg {
+	transform: scaleX(-1);
+}
+
+.pagination-links:dir(rtl) [rel="prev"] > svg {
+	transform: none;
+}
+
+.pagination-links:dir(rtl) [rel="next"] > svg {
+	transform: scaleX(-1);
+}
+
+.meta > a > svg,
+.social-icons a[rel="me"] > svg,
+.sl-anchor-icon > svg,
+a.kudos > svg {
+	--fz-control-icon: var(--fz-icon-external-link);
+}
+
+.social-icons a[href^="https://github.com/"] > svg {
+	--fz-control-icon: var(--fz-icon-github);
+}
+
+/* Draft and untranslated-content notices are direct children of the title panel. */
+.content-panel > .sl-container > p.sl-flex > svg,
+.starlight-aside__icon {
+	--fz-control-icon: var(--fz-icon-warning);
+}
+
+.starlight-aside--tip .starlight-aside__icon {
+	--fz-control-icon: var(--fz-icon-check);
+}
+
+/* Notes already have a visible, localized label; do not misrepresent them as warnings. */
+.starlight-aside--note .starlight-aside__icon {
+	display: none;
+}
+
+:is(starlight-theme-select, starlight-lang-select) label {
+	--sl-label-icon-size: 1.25rem;
+	--sl-caret-size: 1.25rem;
+	color: var(--fz-ink);
+}
+
+:is(starlight-theme-select, starlight-lang-select) select {
+	min-width: 2.75rem;
+	min-height: 2.75rem;
+	font-family: var(--sl-font);
+}
+
+:is(starlight-theme-select, starlight-lang-select) option {
+	color: var(--fz-ink);
+	background-color: var(--fz-page);
+}
+
+:is(
+	starlight-menu-button button,
+	site-search button[data-open-modal],
+	site-search button[data-close-modal],
+	.social-icons a[rel="me"],
+	.meta > a,
+	a.kudos,
+	.pagination-links a,
+	.sidebar-content summary,
+	.sidebar-content a,
+	starlight-toc a,
+	mobile-starlight-toc summary,
+	mobile-starlight-toc a,
+	.sl-markdown-content summary:not(:where(.not-content *))
+) {
+	min-height: 2.75rem;
+}
+
+starlight-menu-button button,
+site-search button[data-open-modal],
+site-search button[data-close-modal],
+.social-icons a[rel="me"] {
+	min-width: 2.75rem;
+}
+
+starlight-menu-button button {
+	align-items: center;
+	justify-content: center;
+	color: var(--fz-ink);
+	background: var(--fz-page);
+	border: 1px solid var(--fz-border);
+	border-radius: var(--fz-radius-control);
+	box-shadow: none;
+}
+
+:is(starlight-theme-select, starlight-lang-select) select,
+site-search button[data-open-modal],
+site-search button[data-close-modal],
+.sidebar-content a,
+starlight-toc a,
+mobile-starlight-toc .toggle,
+#starlight__search :is(input, button) {
+	border-radius: var(--fz-radius-control);
+}
+
+site-search dialog,
+.pagination-links a,
+.sl-link-card {
+	border-radius: var(--fz-radius-panel);
+}
+
+starlight-menu-button[aria-expanded="true"] button {
+	color: var(--fz-violet);
+	background: var(--fz-page);
+}
+
+.sidebar-content a,
+starlight-toc a {
+	display: flex;
+	align-items: center;
+}
+
+.sidebar-content .fz-content-link {
+	justify-content: space-between;
+	min-height: 3.25rem;
+	padding: 0.5rem;
+	font-weight: 600;
+	color: var(--fz-violet);
+	border-bottom: 1px solid var(--fz-border);
+	border-radius: 0;
+}
+
+.social-icons a[rel="me"] {
+	align-items: center;
+	justify-content: center;
+	margin: 0;
+	color: var(--fz-ink);
+}
+
+.social-icons a[rel="me"]:hover,
+.meta > a:hover {
+	color: var(--fz-violet);
+}
+
+mobile-starlight-toc summary {
+	padding-block: 0.25rem;
+}
+
+mobile-starlight-toc .toggle {
+	min-height: 2.75rem;
+}
+
+/* Reserve a full touch target without putting a large icon at the end of every heading. */
+.sl-markdown-content .sl-heading-wrapper {
+	--sl-anchor-icon-size: 2.75rem;
+	--sl-anchor-icon-gap: 0.25rem;
+}
+
+.sl-markdown-content .sl-anchor-link {
+	align-items: center;
+	justify-content: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	vertical-align: middle;
+	opacity: 1;
+}
+
+.sl-markdown-content .sl-anchor-link::after {
+	inset: 0;
+}
+
+.sl-markdown-content .sl-anchor-icon > svg {
+	width: 1.25rem;
+	height: 1.25rem;
+	vertical-align: middle;
+	transform: none;
+}
+
+/* Starlight and Pagefind also ship CSS-only icons, including the mobile TOC check. */
+mobile-starlight-toc .isMobile a[aria-current="true"]::after {
+	align-self: center;
+	width: 1.25rem;
+	height: 1.25rem;
+	-webkit-mask: var(--fz-icon-check) center / contain no-repeat;
+	mask: var(--fz-icon-check) center / contain no-repeat;
+}
+
+.sl-markdown-content summary:not(:where(.not-content *))::before {
+	-webkit-mask: var(--fz-icon-chevron-down) center / contain no-repeat;
+	mask: var(--fz-icon-chevron-down) center / contain no-repeat;
+	transform: rotate(-90deg);
+	transition: none;
+}
+
+.sl-markdown-content summary:not(:where(.not-content *)):dir(rtl)::before {
+	transform: rotate(90deg);
+}
+
+.sl-markdown-content details[open] > summary:not(:where(.not-content *))::before {
+	transform: none;
+}
+
+#starlight__search .pagefind-ui__form::before {
+	background-color: var(--fz-ink);
+	opacity: 1;
+	-webkit-mask: var(--fz-icon-search) center / contain no-repeat;
+	mask: var(--fz-icon-search) center / contain no-repeat;
+}
+
+#starlight__search .pagefind-ui__search-clear::before {
+	background-color: var(--fz-ink);
+	-webkit-mask: var(--fz-icon-close) center / 1.25rem no-repeat;
+	mask: var(--fz-icon-close) center / 1.25rem no-repeat;
+}
+
+#starlight__search .pagefind-ui__result-inner > .pagefind-ui__result-title::before,
+#starlight__search .pagefind-ui__result-nested::before {
+	background-color: var(--fz-ink);
+	-webkit-mask: var(--fz-icon-arrow-right) center / 1.25rem no-repeat;
+	mask: var(--fz-icon-arrow-right) center / 1.25rem no-repeat;
+}
+
+#starlight__search .pagefind-ui__loading::before {
+	display: inline-block;
+	width: 1.25rem;
+	height: 1.25rem;
+	margin-inline-end: 0.5rem;
+	vertical-align: middle;
+	content: "";
+	background-color: currentColor;
+	-webkit-mask: var(--fz-icon-hourglass) center / contain no-repeat;
+	mask: var(--fz-icon-hourglass) center / contain no-repeat;
+}
+
+#starlight__search .pagefind-ui__filter-name::after {
+	width: 1.25rem;
+	height: 1.25rem;
+	background-color: currentColor;
+	border: 0;
+	-webkit-mask: var(--fz-icon-chevron-down) center / contain no-repeat;
+	mask: var(--fz-icon-chevron-down) center / contain no-repeat;
+	transform: translateY(-50%);
+}
+
+#starlight__search .pagefind-ui__filter-block[open] .pagefind-ui__filter-name::after {
+	transform: translateY(-50%) rotate(180deg);
+}
+
+#starlight__search .pagefind-ui__filter-value::before {
+	inset-inline-start: 0;
+	display: none;
+	width: 1rem;
+	height: 1rem;
+	color: var(--fz-page);
+	background-color: currentColor;
+	border: 0;
+	opacity: 1;
+	-webkit-mask: var(--fz-icon-check) center / contain no-repeat;
+	mask: var(--fz-icon-check) center / contain no-repeat;
+	transform: translateY(-50%);
+	transition: none;
+}
+
+#starlight__search .pagefind-ui__filter-value--checked::before {
+	display: block;
+}
+
+#starlight__search
+	:is(
+		.pagefind-ui__search-input,
+		.pagefind-ui__search-clear,
+		.pagefind-ui__button,
+		.pagefind-ui__filter-name,
+		.pagefind-ui__filter-value
+	) {
+	min-height: 2.75rem;
+}
+
+#starlight__search .pagefind-ui__search-clear {
+	min-width: 2.75rem;
+}
+
+#starlight__search .pagefind-ui__filter-label {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	min-height: 2.75rem;
+}
+
+site-search button[data-open-modal]:disabled {
+	color: var(--fz-muted);
+	cursor: wait;
+	opacity: 1;
+}
+
+site-search dialog::backdrop {
+	-webkit-backdrop-filter: none;
+	backdrop-filter: none;
+}
+
+/* Reserve copy-button space inside the line, never on the 100%-wide flex code child. */
+.expressive-code .frame:not(.has-title):not(.is-terminal) .ec-line:nth-child(-n + 2) .code {
+	padding-inline-end: calc(3.25rem + var(--ec-codePadInl));
+}
+
+/* Decorative window dots are not controls and are not part of the approved icon family. */
+.expressive-code .frame.is-terminal .header::before {
+	content: none;
+}
+.expressive-code .frame .copy button {
+	min-width: 2.75rem;
+	min-height: 2.75rem;
+	color: var(--fz-ink);
+	background: var(--fz-code-bg);
+	border: 1px solid var(--fz-border);
+	border-radius: var(--fz-radius-control);
+	/* biome-ignore lint/complexity/noImportantStyles: Expressive Code's higher-specificity hover rules must not hide the copy control. */
+	opacity: 1 !important;
+	transition: none;
+}
+
+.expressive-code .frame .copy button::before {
+	display: none;
+}
+
+.expressive-code .frame .copy button::after {
+	margin: 0;
+	background-color: currentColor;
+	-webkit-mask: var(--fz-icon-copy) center / 1.25rem no-repeat;
+	mask: var(--fz-icon-copy) center / 1.25rem no-repeat;
+}
+
+.expressive-code .frame .copy:has(.feedback.show) button::after {
+	-webkit-mask-image: var(--fz-icon-check);
+	mask-image: var(--fz-icon-check);
+}
+
+.expressive-code .frame .copy button > div,
+.expressive-code .frame .copy .feedback {
+	transform: none;
+	transition: none;
+}
+
+/* One-line install commands have a real copy rail, not an overlay or empty terminal bar. */
+.install-command .expressive-code .frame {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 2.75rem;
+	gap: 0.5rem;
+	align-items: center;
+	padding: 0.5rem;
+	background: var(--fz-code-bg);
+	border: 1px solid var(--fz-border);
+	border-radius: var(--fz-radius-panel);
+}
+
+.install-command .expressive-code .frame pre {
+	min-width: 0;
+	border: 0;
+	border-radius: 0;
+}
+
+.install-command .expressive-code .frame pre > code {
+	padding-block: 0.25rem;
+}
+
+.install-command .expressive-code .frame .ec-line .code {
+	padding-inline: 0.5rem;
+}
+
+.install-command .expressive-code .frame .copy {
+	position: static;
+	gap: 0;
+	justify-content: flex-end;
+}
+
+.install-command .expressive-code .frame .copy .feedback {
+	position: absolute;
+	inset-block-start: 50%;
+	inset-inline-end: 4rem;
+	margin: 0;
+	white-space: nowrap;
+	transform: translateY(-50%);
+}
+
+@media (forced-colors: active) {
+	:is(
+			starlight-menu-button,
+			starlight-theme-select,
+			starlight-lang-select,
+			site-search,
+			.sidebar-content,
+			mobile-starlight-toc,
+			.pagination-links,
+			.meta,
+			.social-icons,
+			.sl-anchor-icon,
+			.sl-link-card
+		)
+		svg,
+	.starlight-aside__icon,
+	#starlight__search :is(.pagefind-ui__form, .pagefind-ui__search-clear, .pagefind-ui__loading)::before,
+	#starlight__search .pagefind-ui__result-title::before,
+	#starlight__search .pagefind-ui__result-nested::before,
+	#starlight__search .pagefind-ui__filter-name::after,
+	#starlight__search .pagefind-ui__filter-value::before,
+	mobile-starlight-toc .isMobile a[aria-current="true"]::after,
+	.sl-markdown-content summary:not(:where(.not-content *))::before,
+	.expressive-code .frame .copy button::after {
+		forced-color-adjust: none;
+		background-color: CanvasText;
+	}
+}

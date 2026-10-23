@@ -3,10 +3,12 @@ import { Code, TabItem, Tabs } from "@astrojs/starlight/components";
 
 import comparison from "../data/client-comparison.json" with { type: "json" };
 import { homepageLocale } from "../i18n/home";
+import PenIcon from "./pen-icon.astro";
 
 const { t, locale } = homepageLocale(Astro.url.pathname);
 
 const bytesPerKilobyte = 1000;
+const iconSize = 20;
 const percentScale = 100;
 const timingPrecision = 3;
 const clients = [...comparison.clients].sort((a, b) => {
@@ -55,8 +57,8 @@ const [measuredDate] = comparison.measuredAt.split("T");
 <section class="home-section home-comparisons" id="comparisons" aria-labelledby="comparison-title">
 	<div class="home-section__heading">
 		<div>
-			<p class="home-kicker">{t("The cost of a client")}</p>
 			<h2 id="comparison-title">{t("Small footprint.")}<br>{t("Visible tradeoffs.")}</h2>
+			<p class="home-section__context">{t("The cost of a client")}</p>
 		</div>
 		<p>
 			{t(
@@ -103,12 +105,14 @@ const [measuredDate] = comparison.measuredAt.split("T");
 				>{t("Measured")} <time datetime={comparison.measuredAt}>{measuredDate}</time> · {comparison.runtime.name}
 				{comparison.runtime.version}
 				· {comparison.cpu.model}</span
-			><a href="#methodology">{t("How we measured")} <span aria-hidden="true">↓</span></a>
+			><a href="#methodology">{t("How we measured")} <PenIcon name="chevron-down" size={iconSize} /></a>
 		</div>
 	</div>
 
 	<details class="home-methodology" id="methodology">
-		<summary>{t("Methodology, exact results, and reproduction")}</summary>
+		<summary>
+			{t("Methodology, exact results, and reproduction")} <PenIcon name="chevron-down" size={iconSize} />
+		</summary>
 		<div class="home-methodology__body">
 			<div class="home-methodology__grid">
 				<div>
@@ -181,7 +185,7 @@ const [measuredDate] = comparison.measuredAt.split("T");
 				</table>
 			</section>
 			<p>
-				{t("HTTP is measured from the local working tree, not the npm release with the same version. Source fingerprint:")}
+				{t("FetchZen is measured from the local working tree, not the npm release with the same version. Source fingerprint:")}
 				<code class="home-source-hash">{comparison.methodology.localSource.digest}</code>
 				{t(". Timing varies with CPU load, garbage collection, and runtime. No statistical significance is claimed.")}
 			</p>
@@ -192,8 +196,12 @@ const [measuredDate] = comparison.measuredAt.split("T");
 				frame="none"
 			/>
 			<p class="home-source-links">
-				<a href={`${repo}/tree/main/benchmarks`}>{t("Benchmark source ↗")}</a
-				><a href={`${repo}/blob/main/docs/src/data/client-comparison.json`}>{t("Raw samples + build settings ↗")}</a>
+				<a href={`${repo}/tree/main/benchmarks`}
+					>{t("Benchmark source ↗").replace(/\s*↗\s*$/, "")} <PenIcon name="external-link" size={iconSize} /></a
+				><a href={`${repo}/blob/main/docs/src/data/client-comparison.json`}
+					>{t("Raw samples + build settings ↗").replace(/\s*↗\s*$/, "")}
+					<PenIcon name="external-link" size={iconSize} /></a
+				>
 			</p>
 		</div>
 	</details>

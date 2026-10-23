@@ -1,0 +1,31 @@
+---
+title: Hooks
+description: Observa el ciclo de una solicitud.
+---
+
+import LiveExamples from "../../../../components/live-examples.astro";
+
+Agrega callbacks del ciclo de solicitud a un cliente para la API de demo de este sitio.
+
+```ts
+import { Http, envelope } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+  hooks: {
+    request: [() => { console.log("request"); }],
+    response: [(response) => { console.log(response.status); }],
+    error: [() => { console.log("error"); }],
+  },
+});
+await api.get("echo", { params: { name: "Ada" }, retry: 0 });
+```
+
+<LiveExamples scenario="hooks" />
+
+## Qué observar
+
+Los hooks de solicitud rodean una solicitud lógica, no cada intento de transporte.
+El panel registra los envíos por separado mediante un transporte Fetch inyectado.
+`echo` es un endpoint de demo, no un servicio de la biblioteca.
+
+Continúa con [reintentos](../retries/) o [configuración](../configuration/).

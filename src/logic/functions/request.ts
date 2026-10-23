@@ -33,7 +33,6 @@ export interface ExecuteOptions<K extends ShapeName> {
 	fetch?: HttpFetch;
 	thrower?: HttpThrower;
 	clone?: boolean;
-	arrayBuffer?: boolean;
 	responseType?: HttpResponseType;
 	errorMessage?: string;
 	log?: boolean;
@@ -61,6 +60,9 @@ const FORCED: Record<Exclude<HttpResponseType, "auto">, ResponseKind> = {
 	stream: "stream",
 	none: "empty",
 };
+
+// Resolve per send and retain the platform receiver, without allocating a closure per request.
+const fetchDefault: HttpFetch = (input, init) => globalThis.fetch(input, init);
 
 function resolveKind(response: Response, responseType: HttpResponseType = "auto"): ResponseKind {
 	if (responseType !== "auto") {
@@ -115,11 +117,14 @@ async function readJson(response: Response): Promise<unknown> {
 
 /**
  * Re-sends on retryable statuses and network errors. Request hooks are not
- * re-run, and a streamed body cannot be replayed.
+ * re-run. Streamed request bodies are sent only once because they cannot be replayed.
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: retry is a flat state machine; splitting it hides the control flow
 async function send(fetcher: HttpFetch, context: HttpHookContext, retry?: HttpRetry): Promise<Response> {
-	const options = resolveRetry(retry);
+	const { body, signal } = context.init;
+	const options = body instanceof ReadableStream ? undefined : resolveRetry(retry);
+
+	signal?.throwIfAborted();
 
 	if (!options) {
 		return fetcher(context.url, context.init);
@@ -128,39 +133,49 @@ async function send(fetcher: HttpFetch, context: HttpHookContext, retry?: HttpRe
 	let attempt = 0;
 
 	for (;;) {
+		signal?.throwIfAborted();
+
+		let response: Response | undefined;
+
 		try {
 			// biome-ignore lint/performance/noAwaitInLoops: retries are sequential by definition
-			const response = await fetcher(context.url, context.init);
-
-			if (!shouldRetryResponse(options, response)) {
-				return response;
-			}
-			if (!canRetry(options, attempt, context.init.method)) {
-				return response;
-			}
-
-			await wait(delayFor(options, attempt, response));
+			response = await fetcher(context.url, context.init);
 		} catch (error) {
+			// Custom abort reasons need not be named AbortError (or even be Errors).
+			signal?.throwIfAborted();
+
 			if (!canRetry(options, attempt, context.init.method)) {
 				throw error;
 			}
 			if (error instanceof Error && (error.name === "AbortError" || error.name === "TimeoutError")) {
 				throw error;
 			}
-
-			await wait(delayFor(options, attempt));
 		}
 
+		if (response) {
+			if (!(shouldRetryResponse(options, response) && canRetry(options, attempt, context.init.method))) {
+				return response;
+			}
+
+			// Release discarded bodies without waiting: a tee branch can wait for its sibling.
+			response.body?.cancel().catch(() => {
+				// Cleanup failure must not replace the eventual response or transport error.
+			});
+		}
+
+		// Keep policy callbacks and aborts outside the transport catch: neither is a network failure.
+		signal?.throwIfAborted();
+		await wait(delayFor(options, attempt, response), signal);
 		attempt += 1;
 	}
 }
 
-function readBody(response: Response, kind: ResponseKind, arrayBuffer?: boolean): Promise<unknown> {
+function readBody(response: Response, kind: ResponseKind, responseType: HttpResponseType = "auto"): Promise<unknown> {
 	if (kind === "json") {
 		return readJson(response);
 	}
 	if (kind === "file") {
-		return arrayBuffer ? response.arrayBuffer() : response.blob();
+		return responseType === "arrayBuffer" ? response.arrayBuffer() : response.blob();
 	}
 	if (kind === "text") {
 		return response.text();
@@ -205,7 +220,6 @@ export async function execute<R, K extends ShapeName>(options: ExecuteOptions<K>
 		fetch: custom,
 		thrower,
 		clone,
-		arrayBuffer,
 		responseType,
 		errorMessage,
 		log,
@@ -217,11 +231,14 @@ export async function execute<R, K extends ShapeName>(options: ExecuteOptions<K>
 		onDownloadProgress,
 	} = options;
 
-	const fetcher: HttpFetch = custom ?? ((input, config) => globalThis.fetch(input, config));
-	const started = Date.now();
+	const fetcher = custom ?? fetchDefault;
+	const started = log ? Date.now() : 0;
 
-	const prepared = await runRequestHooks(hooks?.request ?? [], { url, init });
-	const { context } = prepared;
+	let context: HttpHookContext = { url, init };
+	let shortCircuit: Response | undefined;
+	if (hooks?.request.length) {
+		({ context, response: shortCircuit } = await runRequestHooks(hooks.request, context));
+	}
 
 	onContext?.(context);
 
@@ -229,14 +246,14 @@ export async function execute<R, K extends ShapeName>(options: ExecuteOptions<K>
 		logger?.request?.(context);
 	}
 
-	const sent = prepared.response ?? (await send(fetcher, context, retry));
-	const hooked = await runResponseHooks(hooks?.response ?? [], sent, context);
+	const sent = shortCircuit ?? (await send(fetcher, context, retry));
+	const hooked = hooks?.response.length ? await runResponseHooks(hooks.response, sent, context) : sent;
 	const response = onDownloadProgress ? withProgress(hooked, onDownloadProgress) : hooked;
 
 	const kind = resolveKind(response, responseType);
 	// Read the original, hand back the clone.
 	const returnable = shouldClone(kind, clone) ? response.clone() : response;
-	const body = await readBody(response, kind, arrayBuffer ?? responseType === "arrayBuffer");
+	const body = await readBody(response, kind, responseType);
 
 	if (log) {
 		logger?.response?.({

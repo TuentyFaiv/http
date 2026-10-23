@@ -9,7 +9,7 @@ Hooks are registered on a client, run in registration order, and may be synchron
 or async. They are not per-request configuration options.
 
 ```ts
-import { Http } from "@tuentyfaiv/http";
+import { Http } from "fetchzen";
 
 const api = Http.create("https://api.example.com", {
 	cache: false,
@@ -68,6 +68,17 @@ await api.get("/users");
 off();
 ```
 
+Each unsubscribe removes only its own registration, even if the same callback was
+registered more than once. Calling it again is a no-op. Requests already in progress
+keep their original hook snapshot.
+
+Shared `Http.create` lookups reuse the same client and hooks; later initialization
+does not replace or append hooks. Use `hook()` and unsubscribe, not `configure({ hooks: ... })`.
+Each request snapshots defaults and **all hook lists at its start**, including
+response/error hooks. Changes affect later requests only, not mutable state in
+callback closures. For per-user SSR hooks, use private `cache: false` clients,
+not module/global shared state.
+
 ## Return a local response
 
 A request hook can return a normal Fetch `Response`. Response hooks, parsing,
@@ -93,7 +104,7 @@ Logging is separate from hooks and off by default. Enable it with `log: true` on
 the instance or request. A custom logger is configured on the instance:
 
 ```ts
-import { Http } from "@tuentyfaiv/http";
+import { Http } from "fetchzen";
 
 const api = Http.create("https://api.example.com", {
 	cache: false,
@@ -117,3 +128,4 @@ are not redacted.** Custom loggers receive unredacted data; use `redactHeaders`
 when logging headers and apply your own policy to other fields.
 
 See [errors](../errors/) for error identity and [retries](../resilience/) for retry behavior.
+Try the focused [hooks example](../../examples/hooks/).

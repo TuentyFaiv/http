@@ -1,54 +1,68 @@
 ---
 title: Validación
-description: Valida los datos extraídos de una respuesta con un validador Standard Schema.
+description: Valida respuestas con Zod o Valibot e infiere su tipo de TypeScript.
 sidebar:
   order: 5
 ---
 
 Un genérico de TypeScript describe los datos esperados, pero no comprueba la respuesta
-del servidor. Pasa un validador [Standard Schema v1](https://standardschema.dev) como
-`schema` para validar en ejecución. Las versiones compatibles de Zod, Valibot y
-ArkType pueden proporcionarlo; instala el validador por separado. El cliente HTTP
-no agrega dependencias de validación.
+del servidor. Pasa un esquema de Zod o Valibot para validar la respuesta e inferir su tipo.
+Ambos admiten [Standard Schema v1](https://standardschema.dev), así que no necesitas un adaptador.
+Instala el validador elegido en tu app; el cliente HTTP no agrega dependencias de validación.
 
-## Valida un payload
+## Con Zod
 
-Este esquema completo y sin dependencias muestra el contrato. En una aplicación,
-puedes reemplazarlo por un esquema de tu validador preferido.
+Instala Zod 4:
 
-```ts
-import { Http, ServiceError } from "@tuentyfaiv/http";
-import type { InferSchemaOutput, StandardSchemaV1 } from "@tuentyfaiv/http";
-
-const userSchema: StandardSchemaV1<unknown, { id: number; name: string }> = {
-	"~standard": {
-		version: 1,
-		vendor: "app",
-		validate(value) {
-			if (
-				typeof value === "object" &&
-				value !== null &&
-				"id" in value &&
-				typeof value.id === "number" &&
-				"name" in value &&
-				typeof value.name === "string"
-			) {
-				return { value: { id: value.id, name: value.name.trim() } };
-			}
-			return { issues: [{ message: "Se esperaba un usuario con id numérico y nombre" }] };
-		},
-	},
-};
-
-type User = InferSchemaOutput<typeof userSchema>;
-const api = Http.create("https://api.example.com", { cache: false });
-const { payload } = await api.get<User>("/me", { schema: userSchema });
-console.log(payload.name);
+```sh
+bun add zod@4
 ```
 
-Actualmente, el método **no** infiere el genérico del resultado a partir de `schema`.
-Indica `User` (o el tipo de salida de tu validador) explícitamente. Si hay una
-transformación, el genérico debe usar su tipo de salida, no el de entrada.
+```ts
+import { Http } from "fetchzen";
+import { z } from "zod";
+
+const userSchema = z.object({
+	id: z.number(),
+	name: z.string().trim(),
+});
+
+const api = Http.create("https://api.example.com", { cache: false });
+const { payload } = await api.get("/me", { schema: userSchema });
+console.log(payload.name); // Se infiere como string; se quitan espacios en los extremos.
+```
+
+## Con Valibot
+
+Instala Valibot 1:
+
+```sh
+bun add valibot@1
+```
+
+```ts
+import { Http } from "fetchzen";
+import * as v from "valibot";
+
+const userSchema = v.object({
+	id: v.number(),
+	name: v.pipe(v.string(), v.trim()),
+});
+
+const api = Http.create("https://api.example.com", { cache: false });
+const { payload } = await api.get("/me", { schema: userSchema });
+console.log(payload.name); // Se infiere como string; se quitan espacios en los extremos.
+```
+
+## Tipos inferidos
+
+El resultado se infiere de la **salida** del esquema, incluidas sus transformaciones,
+no de su entrada. Omite los genéricos para usar esta inferencia; el cuerpo de la
+solicitud también se infiere de su argumento. Los métodos normales, seguros y
+`request()` siguen la misma regla. Usa `InferSchemaOutput<typeof userSchema>` si
+necesitas nombrar el tipo de salida. Sin un esquema garantizado o un modo de respuesta
+explícito, el payload inferido sigue siendo `unknown`; las opciones de esquema
+opcionales o con tipos amplios no establecen un tipo validado.
 
 ## Qué se valida
 
@@ -58,28 +72,32 @@ Con el preset predeterminado `envelope`, esta respuesta:
 { "data": { "id": 7, "name": " Ada " } }
 ```
 
-pasa `{ id: 7, name: " Ada " }` al esquema. El ejemplo anterior devuelve
+pasa `{ id: 7, name: " Ada " }` al esquema. Ambos ejemplos devuelven
 `{ id: 7, name: "Ada" }` como `payload`.
 
 La validación usa las claves `unwrap` del preset. `bare` y `rest` no extraen campos
 por defecto, así que sus esquemas reciben todo el cuerpo procesado. Se admiten
-validadores asíncronos. Para payloads JSON, la salida del esquema reemplaza el valor
-extraído, lo que permite transformaciones, coerciones y valores predeterminados de tu validador.
+validadores asíncronos. La salida del esquema reemplaza el payload en todos los modos
+de respuesta, lo que permite transformaciones, coerciones y valores predeterminados.
+Las salidas `undefined`, `null`, `false`, `0` o `""` se conservan en lugar de sustituirse
+por el cuerpo original.
 
 :::note[Alcance actual]
-Esto valida datos de respuesta, no cuerpos de solicitud. El preset envelope
-predeterminado construye los resultados de texto, binarios y streams directamente
-del cuerpo procesado, por lo que las transformaciones del esquema no se aplican a
-esos payloads devueltos. Prefiere este flujo para JSON; los presets personalizados
-deben usar el callback `unwrap` que reciben.
+Esto valida datos de respuesta, no cuerpos de solicitud. La lectura ocurre primero:
+por ejemplo, `responseType: "text"` entrega una cadena al validador. Un esquema
+determina el tipo final del payload en lugar del modo de respuesta original.
+Los presets personalizados deben usar el callback `unwrap` que reciben para
+conservar la salida validada.
 :::
 
 ## Maneja errores de validación
 
-Continúa con el cliente y el esquema anteriores:
+Continúa con el cliente y el esquema de cualquiera de los ejemplos:
 
 ```ts
-const [error, result] = await api.safe.get<User>("/me", { schema: userSchema });
+import { ServiceError } from "fetchzen";
+
+const { data: result, error } = await api.safe.get("/me", { schema: userSchema });
 
 if (error instanceof ServiceError && error.code === "ERR_SCHEMA") {
 	console.error(error.errors);
@@ -98,3 +116,4 @@ El flujo es **lectura → validación del preset (o thrower) → esquema → res
 Una respuesta HTTP 500 que se procesa correctamente falla antes del esquema. Un
 JSON inválido falla incluso antes. Un `thrower` personalizado puede cambiar qué
 respuestas HTTP llegan al esquema. Consulta [errores](../errors/) y [presets personalizados](../presets/).
+Prueba [validación](../../examples/validation/) y [transformaciones](../../examples/transforms/).

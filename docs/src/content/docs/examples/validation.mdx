@@ -1,0 +1,56 @@
+---
+title: Validation
+description: Validate a response with Standard Schema.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+Choose a tab to use the same library in the snippet and live demo.
+See the [validation guide](../../guides/validation/) for installation.
+
+<Tabs>
+<TabItem label="Zod">
+
+```ts
+import { Http, envelope } from "fetchzen";
+import { z } from "zod";
+
+const schema = z.object({ name: z.string().trim() });
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+});
+const result = await api.get("echo", { params: { name: "Ada" }, schema });
+console.log(result.payload.name);
+```
+
+<LiveExamples scenario="schema" validator="zod" />
+
+</TabItem>
+<TabItem label="Valibot">
+
+```ts
+import { Http, envelope } from "fetchzen";
+import * as v from "valibot";
+
+const schema = v.object({ name: v.pipe(v.string(), v.trim()) });
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: envelope,
+});
+const result = await api.get("echo", { params: { name: "Ada" }, schema });
+console.log(result.payload.name);
+```
+
+<LiveExamples scenario="schema" validator="valibot" />
+
+</TabItem>
+</Tabs>
+
+## What to notice
+
+Try a name with surrounding spaces: the inferred payload contains the trimmed name,
+without the echo response's extra fields. The numeric-name checkbox intentionally
+requires a number instead of a string to produce `ERR_SCHEMA`.
+The demo calls this site's bounded echo endpoint; use your own base URL in an application.
+
+Next: [transforms](../transforms/) or [safe errors](../safe-errors/).

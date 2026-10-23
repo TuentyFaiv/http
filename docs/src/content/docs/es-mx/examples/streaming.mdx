@@ -1,0 +1,43 @@
+---
+title: Streaming
+description: Consume un flujo de respuesta sin acumular todo el cuerpo.
+---
+
+import LiveExamples from "../../../../components/live-examples.astro";
+
+Consume y cuenta bytes del flujo de demo de este sitio. Este código mínimo de navegador no analiza NDJSON.
+
+```ts
+import { Http, bare } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: bare,
+});
+const stream = await api.get<ReadableStream<Uint8Array> | null>("stream", {
+  responseType: "stream",
+});
+if (!stream) throw new Error("No response stream");
+const reader = stream.getReader();
+let bytes = 0;
+try {
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    bytes += value.byteLength;
+    if (bytes > 65_536) throw new Error("Stream limit exceeded");
+    console.log(bytes);
+  }
+} finally {
+  try { await reader.cancel(); }
+  finally { reader.releaseLock(); }
+}
+```
+
+<LiveExamples scenario="stream" />
+
+## Qué observar
+
+El panel agrega análisis NDJSON acotado de aplicación para seis registros, con UTF-8 y líneas divididas y vaciado del decodificador.
+NDJSON no es un analizador integrado; los bloques no necesariamente contienen registros completos.
+La compatibilidad depende del entorno. Los **cuerpos de solicitud** en streaming son distintos: el cliente agrega `duplex: "half"` si se omite, pero algunos navegadores los rechazan.
+
+Continúa con [descarga](../download/) o [transferencias de archivos](../../recipes/file-transfers/).

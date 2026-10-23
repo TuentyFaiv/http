@@ -6,25 +6,20 @@ import { ContentType } from "../typing/enums/content.js";
 /**
  * Normalizes any HeadersInit. A `Headers` instance has no own enumerable
  * properties so it cannot be spread, plain objects may carry undefined values,
- * and a caller-supplied Content-Type must survive the default.
+ * and defaults are applied only after request and client headers are merged.
  */
 export function parseHeaders(init?: HeadersInit): Headers {
-	const headers = new Headers();
-
 	if (init instanceof Headers || Array.isArray(init)) {
-		for (const [key, value] of new Headers(init).entries()) {
-			headers.set(key, value);
-		}
-	} else if (init) {
+		return new Headers(init);
+	}
+
+	const headers = new Headers();
+	if (init) {
 		for (const [key, value] of Object.entries(init)) {
 			if (value !== undefined && value !== null) {
 				headers.set(key, value);
 			}
 		}
-	}
-
-	if (!headers.has("Content-Type")) {
-		headers.set("Content-Type", ContentType.APPLICATION_JSON);
 	}
 
 	return headers;

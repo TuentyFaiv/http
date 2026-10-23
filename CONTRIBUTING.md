@@ -1,10 +1,12 @@
 # Contributing
 
-Thanks for helping improve `@tuentyfaiv/http`.
+Thanks for helping improve `fetchzen`.
 
 ## Development setup
 
-Use Bun for repository development and Node.js 22.12+ (24 recommended) for the docs tooling:
+Use Bun and Node.js 24 for repository development and builds. The published
+library supports Node.js 20+; CI builds on Node 24, then separately tests packed
+consumers on Node 20, 22, and 24 without rebuilding on those consumer runtimes:
 
 ```sh
 bun install
@@ -12,6 +14,7 @@ bun run check
 bun run typecheck
 bun run test
 bun run build
+bun run package:smoke
 bun run docs:build
 ```
 
@@ -49,10 +52,32 @@ and optional Cloudflare integrations.
 4. Update the Starlight docs when changing the public API.
 5. Run the checks listed in the pull-request template.
 
-Pull requests must pass the `Verify library` and `Build docs` checks before merge.
+Pull requests must pass `Verify library`, `Build docs`, and all three
+`Packed consumer (Node 20/22/24)` checks before merge. Package smoke fixtures and
+browser bundles are retained under ignored `.temp/` for inspection; no registry
+installation or package lifecycle scripts run.
 
 ## Releases
 
 Releases are published from GitHub Releases. The release tag must match the package version,
 for example `package.json` version `0.2.0` must use the tag `v0.2.0`. The publish workflow
 uses npm Trusted Publishing with OIDC; no npm token is stored in the repository.
+
+The unprivileged build job validates the release, runs the checks, and packs once.
+It smoke-tests that exact tarball and uploads it as an immutable workflow artifact.
+The separate publishing job waits for the protected `npm` environment, downloads
+that artifact by ID, verifies its SHA-256 against the build job's output, and
+publishes with provenance and `--ignore-scripts`. It does not check out source,
+install dependencies, rebuild, or execute repository scripts.
+
+Before approving, inspect the build job's release summary for the commit, npm
+dist-tag, and tarball SHA-256, and review the uploaded artifact. The artifact is
+retained for seven days; if it expires before approval, rerun the workflow rather
+than substituting a locally rebuilt package. Required reviewers and allowed
+release tags must be configured on the `npm` environment in GitHub; the workflow
+cannot enforce those account settings itself.
+
+For `0.2.0-beta.1`, use `v0.2.0-beta.1`, mark the GitHub Release as a prerelease,
+and target `main`. Prereleases are explicitly published to npm's `beta` dist-tag,
+never `latest`. Publishing a GitHub Release triggers the release workflow; review
+the exact commit and tested artifact before approving the `npm` environment.

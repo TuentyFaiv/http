@@ -32,7 +32,7 @@ bun x --no-install biome check benchmarks/*.mjs benchmarks/fixtures/*.mjs benchm
 - `Bun.build`: browser target, ESM, minification, no source maps or splitting. Normal package/browser resolution and tree shaking; no hand-selected stripped distributions. Axios defaults retain its available browser adapters; size does **not** use a custom fetch-only build. The local public build exports `Http` and `bare` for raw parsed JSON, with `cache:false` to avoid reusing the default exported envelope instance at the empty base URL; no features are manually removed. Retry and timeout implementations remain available in size fixtures.
 - Byte counts include the minimal wrapper. Gzip uses Node-compatible `gzipSync` at level 9. Small wrappers can gzip to more bytes than the original.
 - Native fetch's implementation is supplied by the environment. Its reported bytes are only the status-check/JSON wrapper, not an implementation-size comparison.
-- Local `@tuentyfaiv/http` is the **working tree**, not the npm release sharing its manifest version. SHA-256 records sorted root-relative paths, a NUL, file bytes, and a NUL for every `src/` file plus root package/build/config/lock inputs. JSON includes that exact file list, the built artifact hash, tsdown version and benchmark lock hash.
+- Local `fetchzen` is the **working tree**, not the npm release sharing its manifest version. SHA-256 records sorted root-relative paths, a NUL, file bytes, and a NUL for every `src/` file plus root package/build/config/lock inputs. JSON includes that exact file list, the built artifact hash, tsdown version and benchmark lock hash.
 - Dependency counts are the number of keys in the package's declared direct `dependencies` field, not transitive installations or modules retained by the browser bundler. Native fetch has zero npm dependencies. Axios's Node-oriented dependencies still count because these are package-level declarations.
 
 ## Timing methodology
@@ -102,3 +102,45 @@ type Comparison = {
 For homepage use, show measurement date, local-source provenance, payload size and the “no network overhead; not real-world speed” label alongside values. Prefer the units “µs/op, median sample mean”. Do not round data on disk, subtract the native baseline, or turn these results into an unsupported “X times faster on the network” claim.
 
 `verify.mjs` checks the three emitted browser exports on a mock fetch, exact bundle/gzip bytes and hashes, payload bytes, sample statistics, and transport/checksum totals. It does not claim browser-engine compatibility or replace the library's test suite.
+
+## Paired local optimization checks
+
+Use `local.mjs` to compare two built versions before changing homepage comparisons:
+
+```sh
+bun run build
+mkdir -p benchmarks/output/before
+cp -R dist/. benchmarks/output/before/
+# Make the library change, then build again.
+bun run build
+bun benchmarks/local.mjs benchmarks/output/before/index.js dist/index.js
+```
+
+Keep the complete baseline `dist/` graph in `benchmarks/output/`, not ephemeral
+scratch directories. The runner flattens each entry's shared chunks before execution
+and size reporting; the bytes of `index.js` alone are not the library's full size.
+The runner checks bare/envelope GET, safe GET, safe request, configured headers/hooks/schema,
+default Fetch dispatch, and an explicitly opt-out `clone: false` workload. The other
+workloads retain default response cloning. Instances and options are reused; full
+payload checks and observable checksums are included in timed batches. Every
+operation must use the in-memory transport exactly once; no network is available.
+
+Each version receives 500 warmup operations per workload, followed by ten paired
+samples of 1,500 sequential operations. Before/after order alternates and workload
+order rotates. Raw sample means, artifact hashes, and browser fixture sizes are
+written to ignored `output/local-comparison.json`. Timing remains a Bun microbenchmark,
+not browser or network latency, with no forced GC or CPU/load isolation.
+
+Browser fixtures separately measure bare GET, envelope GET, and a helper-only import.
+Gzip numbers use the same Bun `node:zlib` implementation and level 9 for both versions;
+other compressors, including tsdown's size reporter, can produce different byte counts.
+Rerun comparisons rather than enforcing noisy wall-clock thresholds in CI.
+
+## Helper entry sizes
+
+After a library build, run `bun benchmarks/helpers.mjs`. This writes separately
+tree-shaken browser fixtures for root and `fetchzen/helpers` imports of
+`normalizeError`, `buildUrl`, and `composeSignal`, plus hashes and gzip sizes in
+ignored `output/helper-sizes.json`. It measures complete bundled dependency graphs,
+not just the small helper entry file. The helpers entry must never initialize the
+HTTP client registry; root imports retain their existing default-instance behavior.

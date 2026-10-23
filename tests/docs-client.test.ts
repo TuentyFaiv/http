@@ -4,7 +4,13 @@ import type { DemoContext } from "../docs/src/scripts/demo-request-helper.js";
 
 import { exampleText } from "../docs/src/i18n/examples.js";
 import { requestDemo } from "../docs/src/scripts/demo-request-helper.js";
-import { downloadDemo, streamDemo, uploadDemo } from "../docs/src/scripts/demo-transfer-helper.js";
+import {
+	confirmedUploadDemo,
+	downloadDemo,
+	multipartDemo,
+	streamDemo,
+	uploadDemo,
+} from "../docs/src/scripts/demo-transfer-helper.js";
 import { handleDemo } from "../docs/src/server/demo.js";
 
 function context(fields: Record<string, string> = {}): DemoContext {
@@ -29,6 +35,78 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("live example client code", () => {
+	it("reports confirmed byte counts from the actual chunk endpoint", async () => {
+		const demo = context({ confirmedSize: "600000" });
+		await expect(confirmedUploadDemo(demo)).resolves.toEqual({
+			receivedBytes: 600_000,
+			total: 600_000,
+			chunks: 3,
+			stored: false,
+		});
+		expect(vi.mocked(demo.progress).mock.calls).toEqual([
+			[0, 600_000, false],
+			[262_144, 600_000, false],
+			[524_288, 600_000, false],
+			[600_000, 600_000, true],
+		]);
+		expect(demo.log).toHaveBeenCalledWith(demo.text.confirmedReceipt);
+	});
+
+	it("does not fabricate confirmation for a malformed chunk receipt", async () => {
+		vi.stubGlobal("fetch", async () => Response.json({ data: { receivedBytes: 1 } }));
+		const demo = context({ confirmedSize: "3" });
+		await expect(confirmedUploadDemo(demo)).rejects.toThrow();
+		expect(demo.progress).toHaveBeenCalledExactlyOnceWith(0, 3, false);
+	});
+
+	it("confirms empty generated data through an actual zero-byte receipt", async () => {
+		const demo = context({ confirmedSize: "0" });
+		await expect(confirmedUploadDemo(demo)).resolves.toMatchObject({ receivedBytes: 0, total: 0, chunks: 1 });
+		expect(demo.progress).toHaveBeenLastCalledWith(0, 0, true);
+	});
+
+	it("bounds generated upload data before allocating or sending", async () => {
+		const demo = context({ confirmedSize: "1048577" });
+		const fetch = vi.spyOn(globalThis, "fetch");
+		await expect(confirmedUploadDemo(demo)).rejects.toThrow(demo.text.confirmedSizeLimit);
+		expect(fetch).not.toHaveBeenCalled();
+		expect(demo.progress).not.toHaveBeenCalled();
+	});
+
+	it("sends multipart files and fields without claiming upload progress", async () => {
+		const demo = context({ name: "Ada" });
+		demo.form.set("file", new File(["hello"], "demo.txt"));
+		await expect(multipartDemo(demo)).resolves.toMatchObject({
+			data: { fileBytes: 5, fieldCharacters: 3, stored: false },
+		});
+		expect(demo.progress).not.toHaveBeenCalled();
+	});
+
+	it("shares configured defaults within a run, not across runs", async () => {
+		const first = context({ name: "Ada" });
+		const second = context({ name: "Grace" });
+		await expect(requestDemo("configure", first)).resolves.toMatchObject({ payload: { name: "Ada" } });
+		await expect(requestDemo("configure", second)).resolves.toMatchObject({ payload: { name: "Grace" } });
+		expect(first.log).toHaveBeenCalledTimes(1);
+		expect(second.log).toHaveBeenCalledTimes(1);
+	});
+
+	it("returns safe.request failures and schema-transformed output", async () => {
+		await expect(requestDemo("safeRequest", context({ status: "422" }))).resolves.toMatchObject({
+			error: { status: 422 },
+		});
+		await expect(requestDemo("transform", context({ name: "Ada" }))).resolves.toMatchObject({
+			payload: { greeting: "Hello, Ada", characters: 3 },
+		});
+	});
+
+	it("offers a completed blob without automatically saving it", async () => {
+		const demo = context({ known: "on" });
+		demo.download = vi.fn();
+		await downloadDemo(demo);
+		expect(demo.download).toHaveBeenCalledWith(expect.any(Blob));
+	});
+
 	it.each(["envelope", "bare", "rest", "problem"])("uses the %s preset", async (preset) => {
 		const result = await requestDemo("json", context({ name: "Ada", method: "GET", preset }));
 		expect(JSON.stringify(result)).toContain("Ada");
@@ -42,12 +120,30 @@ describe("live example client code", () => {
 
 	it("reports safe HTTP failures without rejecting", async () => {
 		const result = await requestDemo("safe", context({ preset: "problem", status: "422" }));
-		expect(result).toMatchObject({ error: { status: 422 }, data: null });
+		expect(result).toMatchObject({ data: undefined, error: { status: 422 } });
 	});
 
-	it("validates the unwrapped payload and rejects a mismatched schema", async () => {
-		await expect(requestDemo("schema", context({ name: "Ada" }))).resolves.toMatchObject({ payload: { name: "Ada" } });
-		await expect(requestDemo("schema", context({ name: "Ada", invalid: "on" }))).rejects.toThrow();
+	it.each(["zod", "valibot"])("validates and trims the unwrapped payload with %s", async (validator) => {
+		const result = await requestDemo("schema", context({ name: " Ada ", validator }));
+		expect(result).toMatchObject({ payload: { name: "Ada" } });
+		expect((result as { payload: unknown }).payload).toEqual({ name: "Ada" });
+	});
+
+	it.each(["zod", "valibot"])("reports %s validation issues through ERR_SCHEMA", async (validator) => {
+		for (const locale of ["en-US", "es-MX"]) {
+			const demo = context({ name: "Ada", invalid: "on", validator });
+			demo.text = exampleText(locale);
+			await expect(requestDemo("schema", demo)).rejects.toMatchObject({
+				code: "ERR_SCHEMA",
+				errors: expect.arrayContaining([expect.stringContaining(demo.text.schemaNumber)]),
+			});
+		}
+	});
+
+	it.each(["zod", "valibot"])("infers and returns the transformed %s output", async (validator) => {
+		await expect(requestDemo("transform", context({ name: " Ada ", validator }))).resolves.toMatchObject({
+			payload: { greeting: "Hello, Ada", characters: 3 },
+		});
 	});
 
 	it("retries with per-transport attempt headers, not per-request hooks", async () => {
@@ -67,7 +163,7 @@ describe("live example client code", () => {
 	it.each([true, false])("downloads bytes with known length = %s", async (known) => {
 		const demo = context(known ? { known: "on" } : {});
 		await expect(downloadDemo(demo)).resolves.toMatchObject({ bytes: 262_144 });
-		expect(demo.progress).toHaveBeenLastCalledWith(262_144, known ? 262_144 : undefined);
+		expect(demo.progress).toHaveBeenLastCalledWith(262_144, known ? 262_144 : undefined, true);
 	});
 
 	it("renders NDJSON records incrementally", async () => {

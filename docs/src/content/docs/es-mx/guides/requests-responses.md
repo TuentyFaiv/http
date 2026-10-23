@@ -12,7 +12,7 @@ sidebar:
 la configuración como tercero. Los siguientes fragmentos comparten este cliente y estos tipos:
 
 ```ts
-import { ContentType, Http } from "@tuentyfaiv/http";
+import { ContentType, Http } from "fetchzen";
 
 type User = { id: number; name: string };
 type CreateUser = { name: string };
@@ -45,17 +45,17 @@ y se agregan los parámetros serializados; por eso, una clave existente puede re
 
 ```ts
 type Search = { page: number; tag: string[]; active: boolean };
+const params: Search = { page: 2, tag: ["staff", "editor"], active: false };
 
-await api.get<User[], Search>("/users", {
-	params: { page: 2, tag: ["staff", "editor"], active: false },
-});
+await api.get<User[]>("/users", { params });
 // /v1/users?page=2&tag=staff&tag=editor&active=false
 ```
 
 Los arreglos repiten la clave, los objetos se convierten en cadenas JSON y se omiten
 los valores `null`/`undefined`. Los parámetros de instancia y solicitud se combinan
-por clave; gana la solicitud. Si especificas el genérico del resultado y usas `params`,
-especifica también el tipo de los parámetros (su tipo predeterminado es `undefined`).
+por clave; gana la solicitud. Los objetos de consulta funcionan con un genérico
+explícito de resultado sin otro argumento genérico. Aún puedes usar
+`get<User[], Search>` para comprobar los parámetros de esa llamada con mayor precisión.
 
 Para otra codificación, configura `paramsSerializer` en la instancia o solicitud.
 Recibe un `Record<string, unknown>` y devuelve la cadena de consulta sin `?`.
@@ -86,12 +86,12 @@ usan claves con índice, como `tag[0]`.
 
 ## Encabezados y autenticación
 
-Los encabezados de instancia aceptan cualquier `HeadersInit`. **Actualmente, los
-encabezados por solicitud tienen el tipo `Headers`**, así que créalos explícitamente:
+Los encabezados de instancia y solicitud aceptan cualquier `HeadersInit`: objetos,
+arreglos de entradas o instancias de `Headers`.
 
 ```ts
 await api.get<User>("/me", {
-	headers: new Headers({ "Accept-Language": "es-MX" }),
+	headers: { "Accept-Language": "es-MX" },
 	credentials: "include",
 });
 ```
@@ -122,11 +122,18 @@ Usa otro cliente sin credenciales.
 | `none` | `undefined`; omite la lectura del cuerpo, no la validación del estado. |
 
 ```ts
-const { payload: csv } = await api.get<string>("/export", { responseType: "text" });
-const { payload: file } = await api.get<Blob>("/archive", { responseType: "blob" });
+const { payload: csv } = await api.get("/export", { responseType: "text" });
+const { payload: file } = await api.get("/archive", { responseType: "blob" });
 const { response } = await api.head<undefined>("/health");
 console.log(csv.length, file.size, response.status);
 ```
+
+Sin genéricos explícitos de resultado, las opciones literales de `responseType`
+infieren el tipo nativo del payload mostrado arriba para los métodos normales,
+seguros y `request()`. `auto` y `json` siguen siendo `unknown` salvo que indiques
+un tipo de resultado o [esquema](../validation/). La salida del esquema tiene
+prioridad sobre el modo original, incluidas las transformaciones. Usa
+`responseType: "arrayBuffer"` cuando necesites bytes en lugar de un `Blob`.
 
 `auto` reconoce JSON (incluido `+json`), los tipos de texto y binarios compatibles,
 y respuestas vacías como 204/205. Un 304 no tiene cuerpo procesado, pero los presets
@@ -139,4 +146,34 @@ Las respuestas JSON y de texto se clonan por defecto para poder leer
 adicional para JSON/texto. Clonar cuerpos grandes o streams puede acumular muchos
 datos en memoria si no consumes ambas ramas.
 
-Continúa con [errores](../errors/) y [progreso de descarga](../resilience/).
+## Sin URL base
+
+```ts
+import http from "fetchzen";
+
+await http.get("https://api.example.com/health");
+```
+
+La exportación predeterminada no tiene URL base. En el navegador también funcionan
+endpoints relativos; los entornos de servidor suelen requerir una URL absoluta.
+
+## Utilidades sin inicializar el cliente
+
+```ts
+import { buildUrl } from "fetchzen/helpers";
+
+const url = buildUrl({
+  baseUrl: "https://api.example.com",
+  endpoint: "/users",
+  params: { page: 2 },
+});
+```
+
+La entrada `helpers` exporta utilidades, errores, presets, convenciones y sus tipos
+sin crear el cliente predeterminado ni inicializar su registro. No tiene exportación
+predeterminada ni constructor `Http`. Sus exportaciones nombradas tienen las mismas
+identidades de funciones, clases y presets que la entrada principal; los empaquetadores
+pueden eliminar utilidades no usadas. Importa los clientes desde `fetchzen`.
+
+Continúa con [errores](../errors/) y [progreso de descarga](../resilience/),
+o prueba [JSON](../../examples/json/) y [multipart](../../examples/multipart/).

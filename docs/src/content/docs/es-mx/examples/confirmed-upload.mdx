@@ -1,0 +1,43 @@
+---
+title: Carga confirmada
+description: Envía fragmentos sintéticos y mide recibos de bytes del servidor.
+---
+
+import LiveExamples from "../../../../components/live-examples.astro";
+
+Envía fragmentos secuenciales con Fetch. Este ejemplo del mismo sitio usa el
+envelope predeterminado y un Blob generado de 1 MiB, no un archivo personal.
+
+```ts
+import { Http, ContentType, uploadConfirmed, type HttpUploadChunkReceipt } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false,
+});
+const body = new Blob([new Uint8Array(1024 * 1024)]);
+const result = await uploadConfirmed(body, {
+  sendChunk: async (chunk, { signal }) =>
+    (await api.post<Blob, HttpUploadChunkReceipt>("upload-chunk/", chunk, {
+      type: ContentType.APPLICATION_OCTET_STREAM, signal, retry: 0,
+    })).payload,
+  onUploadProgress: (progress) => console.log(progress),
+});
+console.log(result);
+```
+
+<LiveExamples scenario="confirmedUpload" />
+
+## Qué observar
+
+Cada `POST /api/examples/upload-chunk/` lee como máximo 256 KiB del cuerpo binario
+real antes de devolver `{ data: { receivedBytes, stored: false } }`. El demo
+cuenta y descarta bytes; no ensambla ni almacena archivos. El progreso empieza en
+0% y solo avanza con recibos exactos, no al entregar bytes a Fetch.
+`done: true` significa recibos de bytes, no almacenamiento ni procesamiento.
+
+El demo limita los archivos generados a 1 MiB. No hay persistencia ni reanudación.
+Usa datos sintéticos: las solicitudes pasan por Cloudflare. Fragmentos pequeños
+implican más solicitudes HTTP. Un endpoint de archivos completos requiere
+cambios del servidor para usar esta convención.
+
+Continúa con [producción y cancelación](../../recipes/confirmed-uploads/)
+o [carga directa de archivos](../file-upload/).

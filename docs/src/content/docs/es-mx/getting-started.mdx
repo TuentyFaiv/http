@@ -1,6 +1,6 @@
 ---
 title: Primeros pasos
-description: Instala el cliente, realiza una solicitud tipada y configura instancias seguras.
+description: Instala el cliente, realiza una solicitud tipada y maneja errores de forma segura.
 sidebar:
   order: 1
 ---
@@ -9,95 +9,77 @@ import { Code, TabItem, Tabs } from "@astrojs/starlight/components";
 
 ## Instalación
 
+Esta documentación corresponde a **0.2.0**, pendiente de publicación con la etiqueta `latest` de npm.
+Usa los siguientes comandos después de que se publique la versión.
+
+<div class="install-command">
 <Tabs syncKey="pkg">
 	<TabItem label="bun">
-		<Code code="bun add @tuentyfaiv/http" lang="sh" />
+		<Code code="bun add fetchzen" lang="sh" frame="none" />
 	</TabItem>
 	<TabItem label="npm">
-		<Code code="npm install @tuentyfaiv/http" lang="sh" />
+		<Code code="npm install fetchzen" lang="sh" frame="none" />
 	</TabItem>
 	<TabItem label="pnpm">
-		<Code code="pnpm add @tuentyfaiv/http" lang="sh" />
+		<Code code="pnpm add fetchzen" lang="sh" frame="none" />
 	</TabItem>
 </Tabs>
+</div>
 
 El paquete usa únicamente ESM y no tiene dependencias de ejecución. Usa Node.js 20+
-o un navegador moderno, Bun, Deno o un entorno edge que incluya las API estándar de Fetch.
+o un navegador moderno, Bun, Deno o un entorno edge con las API estándar de Fetch.
 
-## Realiza una solicitud
+## Realiza una solicitud tipada
+
+Ejecuta esto en un módulo TypeScript. El endpoint público devuelve un objeto JSON
+sin envoltura, así que selecciona `rest` explícitamente:
 
 ```ts
-import { Http } from "@tuentyfaiv/http";
+import { Http, rest } from "fetchzen";
 
 type User = { id: number; name: string };
 
-const api = Http.create("https://api.example.com/v1", { cache: false });
-const { payload, response } = await api.get<User>("/users/1");
-
-console.log(payload.name, response.status);
-```
-
-Reemplaza la URL por la de tu API. La diagonal inicial conserva la ruta base: esta
-solicitud usa `https://api.example.com/v1/users/1`. El genérico describe el payload
-esperado; no valida los datos del servidor. Usa un [esquema](../guides/validation/)
-para validarlos.
-
-El preset predeterminado, `envelope`, devuelve:
-
-| Campo | Significado |
-| --- | --- |
-| `payload` | Datos procesados; extrae el primer campo `data` o `payload` que no sea nulo. |
-| `response` | Un objeto `Response` de Fetch; los cuerpos JSON y de texto se clonan por defecto para poder leerlos de nuevo. |
-| `message` | Mensaje elegido por el preset, normalmente `message` de la API o una cadena vacía. |
-| `success` | Indicador calculado por el preset, **no** un alias de `response.ok`. Un arreglo JSON vacío puede producir `false` con HTTP 200. |
-
-Los errores HTTP y los errores reconocidos de la API rechazan la promesa. Usa los
-[métodos `safe`](../guides/errors/) si prefieres una tupla de error y resultado.
-Elige [`bare` o `rest`](../guides/presets/) si tu API no sigue las convenciones de envelope.
-
-## Configura una instancia
-
-```ts
-import { Http } from "@tuentyfaiv/http";
-
-const api = Http.create("https://api.example.com/v1", {
+const api = Http.create("https://jsonplaceholder.typicode.com", {
+	preset: rest,
 	cache: false,
-	headers: { "Accept-Language": "es-MX" },
-	params: { locale: "es-MX" },
-	timeout: 5_000,
-	retry: 2,
 });
+const { data, status } = await api.get<User>("/users/1");
 
-await api.get("/health", { timeout: 1_000, retry: 0 });
+console.log(data.name, status);
 ```
 
-Los encabezados y parámetros de la solicitud reemplazan los valores predeterminados
-con la misma clave. También puedes sobrescribir `timeout`, `retry`, `secure`, `log`
-y `errorMessage` por solicitud. Pasa opciones de Fetch como `credentials` o `signal`
-a la solicitud, no a `create`.
+`rest` devuelve `{ data, status, headers, response }`. El genérico describe el
+JSON esperado; no valida los datos del servidor. Agrega un
+[esquema](../guides/validation/) si necesitas validación en tiempo de ejecución.
 
-:::caution[La caché de instancias no almacena respuestas]
-Por defecto, `Http.create` usa la cadena exacta de la URL base como clave de caché.
-Otra llamada con esa URL devuelve el cliente original e **ignora la nueva configuración**,
-incluso un preset o credenciales diferentes. Usa `cache: false` para aislar solicitudes
-en el servidor, en pruebas y cuando necesites clientes con distinta configuración
-para la misma URL. Esta opción es independiente de `cache` de Fetch por solicitud.
-:::
+`cache: false` crea un cliente independiente. Para compartirlo en tu aplicación,
+sigue la [receta de cliente compartido](../recipes/shared-typed-client/).
+Si omites `preset`, el predeterminado es `envelope`: usa `payload` en lugar de
+`data` y comprueba las convenciones de error de la API. Consulta [presets](../guides/presets/).
 
-## Sin URL base
+## Maneja errores sin try/catch
+
+Con el mismo `api`, llama a `safe.get` con los mismos argumentos:
 
 ```ts
-import http from "@tuentyfaiv/http";
+const { data: result, error } = await api.safe.get<User>("/users/1");
 
-await http.get("https://api.example.com/health");
+if (error) {
+	console.error(error.message);
+} else {
+	console.log(result.data.name);
+}
 ```
 
-La exportación predeterminada no tiene URL base. En el navegador también funcionan
-las rutas relativas; los entornos de servidor generalmente requieren una URL absoluta.
+Los métodos safe devuelven un resultado `data` con la forma del preset o un `Error`.
+Siguen ejecutando la validación y los hooks de error. Los métodos normales rechazan
+la promesa al fallar; consulta [errores](../guides/errors/) para inspeccionar errores
+HTTP o usar `try/catch`.
 
 ## Siguientes pasos
 
-- [Solicitudes y respuestas](../guides/requests-responses/): métodos, parámetros, cuerpos y lectura de respuestas.
-- [Presets](../guides/presets/): elige la estructura del resultado y las convenciones de error.
-- [Hooks](../guides/hooks/): observa o reemplaza solicitudes y respuestas.
-- [Tiempos de espera, reintentos y progreso](../guides/resilience/): cancelación y comportamiento del transporte.
+- [Solicitudes y respuestas](../guides/requests-responses/): URLs, cuerpos y procesamiento.
+- [Comparte un cliente tipado](../recipes/shared-typed-client/): valores predeterminados, configuración y aislamiento en SSR.
+- [Validación](../guides/validation/): comprueba y transforma datos del servidor.
+- [Tiempos límite y reintentos](../guides/resilience/): cancelación y comportamiento de reintentos.
+- Prueba los ejemplos de [JSON](../examples/json/) y [errores seguros](../examples/safe-errors/).

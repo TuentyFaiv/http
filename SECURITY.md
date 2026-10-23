@@ -5,6 +5,14 @@
 Only the latest published version receives security fixes while the package is in the 0.x
 series.
 
+The `0.2.0-beta` line is prerelease software intended for evaluation, not a
+production stability guarantee. Report security issues in beta builds through
+the same private channel below. Do not include credentials or private user data.
+
+Public documentation demos must not act as an unrestricted HTTP proxy. Before
+deployment, maintainers must verify request/body limits, timeouts, rate limiting,
+origin policy, and safe error/log redaction.
+
 ## Reporting a vulnerability
 
 Please do not open a public issue for a security vulnerability. Use GitHub's private

@@ -1,0 +1,31 @@
+---
+title: File upload
+description: Upload a raw file body.
+---
+
+import LiveExamples from "../../../components/live-examples.astro";
+
+Send a `File` directly. This browser snippet creates a small synthetic file for this site's demo API.
+
+```ts
+import { Http, bare, ContentType } from "fetchzen";
+const api = Http.create(`${location.origin}/api/examples/`, {
+  cache: false, secure: false, preset: bare,
+});
+const file = new File(["Hello"], "demo.txt", { type: "text/plain" });
+console.log(await api.post("upload/", file, {
+  type: ContentType.APPLICATION_OCTET_STREAM,
+}));
+```
+
+<LiveExamples scenario="upload" />
+
+## What to notice
+
+The demo accepts up to 1 MiB, counts bytes and discards them without storage.
+Browser Fetch has no upload progress callbacks: waiting stays indeterminate until the receipt.
+Use your own upload endpoint in an application.
+
+For opt-in server-confirmed progress, use a [cooperating chunk endpoint](../confirmed-upload/), not this whole-file endpoint.
+
+Next: [multipart](../multipart/) or [file transfers](../../recipes/file-transfers/).
