@@ -9,6 +9,17 @@
 		"directory": "./dist"
 	},
 	"observability": {
-		"enabled": false
+		"enabled": true,
+		"logs": {
+			"enabled": true,
+			"head_sampling_rate": 1
+		},
+		"traces": {
+			"enabled": true,
+			"head_sampling_rate": 1
+		},
+		"issues": {
+			"enabled": true
+		}
 	}
 }
