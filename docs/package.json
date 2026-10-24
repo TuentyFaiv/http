@@ -21,7 +21,7 @@
 		"astro": "6.4.8",
 		"sharp": "^0.34.0",
 		"valibot": "1.5.0",
-		"zod": "4.6.5"
+		"zod": "4.6.6"
 	},
 	"devDependencies": {
 		"wrangler": "4.136.3"
