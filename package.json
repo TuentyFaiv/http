@@ -1,13 +1,13 @@
 {
 	"name": "fetchzen",
 	"version": "0.2.0",
-	"description": "Library for http requests based on fetch",
+	"description": "TypeScript-first HTTP client built on native Fetch, with typed responses, validation, retries, and zero runtime dependencies.",
 	"keywords": [
 		"Http",
 		"Library",
 		"TypeScript"
 	],
-	"homepage": "https://github.com/TuentyFaiv/http#readme",
+	"homepage": "https://fetchzen.dev/",
 	"bugs": {
 		"url": "https://github.com/TuentyFaiv/http/issues"
 	},

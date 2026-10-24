@@ -17,6 +17,7 @@ const output = resolve(".temp/browser-smoke");
 const MARKDOWN_EXTENSION = /\.mdx?$/;
 const INDEX_SLUG = /\/?index$/;
 const TABLE_SEPARATOR = /^\|(?:\s*:?-+:?\s*\|)+\s*$/gm;
+const UNPUBLISHED_COPY = /Not published yet|Aún sin publicar|pending publication|pendiente de publicación/;
 const readyRun = '[data-run][aria-disabled="false"]:enabled';
 const demoPages = {
 	json: "json",
@@ -65,6 +66,28 @@ async function runExample(page) {
 	await panel.locator(readyRun).waitFor({ state: "visible", timeout: 20_000 });
 	return await panel.locator("[data-result]").innerText();
 }
+async function publicationChecks(page, label, locale) {
+	if (label === "home") {
+		assert(
+			(await page.locator(".home-release").innerText()).includes(locale ? "Publicado en npm" : "Published on npm"),
+			"Homepage confirms npm publication"
+		);
+	} else {
+		const releaseLink = page.locator('.sl-markdown-content a[href="https://www.npmjs.com/package/fetchzen/v/0.2.0"]');
+		assert.equal(await releaseLink.count(), 1, "Getting started links to the published npm version");
+		assert(
+			(await releaseLink.locator("xpath=ancestor::p").innerText()).includes(
+				locale ? "publicado en npm" : "published on npm"
+			),
+			"Getting started confirms npm publication"
+		);
+	}
+	assert.doesNotMatch(
+		await page.locator("main").innerText(),
+		UNPUBLISHED_COPY,
+		"Installation copy must reflect the published release in both locales"
+	);
+}
 async function brandChecks(page, base, engine, locale) {
 	const language = locale ? "es" : "en";
 	for (const [slug, label] of [
@@ -72,8 +95,16 @@ async function brandChecks(page, base, engine, locale) {
 		[`${locale}getting-started/`, "docs"],
 	]) {
 		await page.goto(`${base}/${slug}`);
+		await publicationChecks(page, label, locale);
 		await page.evaluate(async () => {
 			await document.fonts.ready;
+		});
+		// External code CSS can trigger a font load after the initial FontFaceSet promise.
+		await page.waitForFunction(() => {
+			const loaded = [...document.fonts].filter((face) => face.status === "loaded");
+			return ["Caveat", "Source Sans", "IBM Plex Mono"].every((family) =>
+				loaded.some((face) => face.family.includes(family))
+			);
 		});
 		const faces = await page.evaluate(() =>
 			[...document.fonts].filter((face) => face.status === "loaded").map((face) => face.family)
@@ -169,7 +200,7 @@ async function brandChecks(page, base, engine, locale) {
 		}
 	}
 	await page.setViewportSize({ width: 375, height: 900 });
-	const menu = page.locator("starlight-menu-button button");
+	const menu = page.locator(".sl-menu-button");
 	await menu.focus();
 	await menu.press("Enter");
 	await page.locator(".sidebar-pane").waitFor({ state: "visible" });
@@ -184,7 +215,23 @@ async function brandChecks(page, base, engine, locale) {
 		"Visible sidebar bypass focuses the title"
 	);
 
+	// The site's overlay breakpoint is wider than Starlight's default 50rem.
+	for (const width of [800, 1280, 1791]) {
+		await page.setViewportSize({ width, height: 900 });
+		await menu.click();
+		await page.locator("#starlight__sidebar:popover-open").waitFor({ state: "visible" });
+		assert.equal(await page.locator(".main-frame").evaluate((frame) => frame.inert), true);
+		await page.keyboard.press("Escape");
+		await page.locator(".sidebar-pane").waitFor({ state: "hidden" });
+		assert.equal(await page.locator(".main-frame").evaluate((frame) => frame.inert), false);
+	}
+	await page.setViewportSize({ width: 1920, height: 900 });
+	await page.locator(".sidebar-pane").waitFor({ state: "visible" });
+	assert.equal(await page.locator(".sidebar-pane").getAttribute("popover"), null);
+	assert.equal(await menu.isVisible(), false);
+
 	await page.setViewportSize({ width: 1280, height: 900 });
+	await page.locator(".sidebar-pane").waitFor({ state: "hidden" });
 	assert(
 		await page
 			.locator('.social-icons a[href^="https://github.com/"] > svg')
@@ -471,6 +518,13 @@ try {
 					page.on("request", record);
 					await page.goto(`${base}/${locale}examples/${slug}/`);
 					await page.waitForFunction(() => !document.querySelector("[data-run]").disabled);
+					assert.equal(
+						await page
+							.locator("style")
+							.evaluateAll((styles) => styles.filter((style) => style.hasAttribute("set:html")).length),
+						0,
+						"MDX must compile inline style directives instead of emitting empty styles with literal set:html attributes"
+					);
 					assert.equal(initialRequests, 0, "Examples must not request on load");
 					assert.deepEqual(eagerValidators, [], "Validator libraries must wait until Run");
 					page.off("request", record);

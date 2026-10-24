@@ -7,7 +7,7 @@ URLs redirect to the corresponding root paths with method-preserving 308 redirec
 
 ## Local development
 
-Use **Node.js 22.12+ (Node 24 recommended)** and the repository's Bun version.
+Use **Node.js 22.23.4+ (Node 24 recommended)** and the repository's Bun version.
 From the repository root:
 
 ```sh
@@ -24,10 +24,29 @@ bun run docs:build
 bun run docs:preview
 ```
 
-The docs use a compatible, pinned Astro 6 / Cloudflare adapter 13 / Starlight 0.39
+The docs use a compatible, pinned Astro 7 / Cloudflare adapter 14 / MDX 8 / Starlight 0.42
 release set. Upgrade these together and rerun browser checks; framework upgrades can
 change component overrides and Markdown compilation. Library runtime dependencies
 and the library's Node 20+ consumer support are unchanged.
+
+### Framework compatibility
+
+- Astro 7 uses Sätteri for Markdown and MDX. GFM tables are handled by the shared
+  processor, and `compressHTML: true` preserves the previous HTML-aware whitespace.
+- Starlight 0.42's tabs, file trees, and steps also use Sätteri to parse HTML
+  fragments in server components. `starlight-worker-html.mjs` redirects only those
+  three imports to `hast-util-from-html`, avoiding native/WASI bindings in the
+  Cloudflare Worker. It does not replace Astro's Markdown compiler. Remove this
+  bridge when upstream provides a Worker-compatible HTML parser.
+- Expressive Code uses its external CSS asset mode. Inline `set:html` style
+  directives were emitted literally by this stack, leaving code blocks unstyled;
+  the browser smoke checks for that regression and horizontal overflow.
+- The `PageFrame` override retains Starlight's native popover menu button while
+  matching this site's 112rem sidebar breakpoint. The visible content bypass
+  closes the popover and releases keyboard focus to the page title.
+
+Starlight 0.42 supports Chromium 116+, Safari 17+, and Firefox 125+. This docs
+browser baseline is separate from the FetchZen library's runtime support.
 
 ## Visual identity
 
@@ -39,8 +58,8 @@ OFL notices with the fonts.
 ## Deploy to Workers
 
 No Cloudflare resources have been provisioned by this setup. The baseline needs
-**no R2, KV, D1, bindings to other Workers, or application secrets**. The null session
-driver prevents the adapter from automatically provisioning KV; these examples do
+**no R2, KV, D1, bindings to other Workers, or application secrets**. Sessions are
+disabled to prevent the adapter from automatically provisioning KV; these examples do
 not use sessions. Image optimization happens at build time, not via a paid Images binding.
 
 1. Choose the Worker name in `wrangler.jsonc` (currently `http-docs`).
@@ -146,7 +165,7 @@ downloads; network buffering may still merge chunks.
 
 ### Limits, privacy, and cost
 
-- This checkout targets 0.2.0 on npm's `latest` dist-tag, pending publication. Production still needs a manual redeployment to replace the old tuple docs; no deployment was performed.
+- FetchZen 0.2.0 is published on npm under the `latest` dist-tag. Documentation deployment is separate from npm publication; see the deployment instructions above.
 - Before promotion, manually verify Cloudflare zone/Worker route coverage, available WAF/rate rules for `/api/examples/*`, request/CPU limits, usage alerts and billing plan. Test normal, oversized and repeated requests on the production origin. Do not assume a dashboard rule covers `workers.dev` or every custom domain.
 - No in-memory IP bucket is presented as global protection: isolates restart and do not coordinate, and client-supplied identity headers are not trustworthy outside the deployment boundary. Account-level controls remain an operator task; their availability and costs depend on the plan.
 - No application persistence or request-body logging. Uploads are not stored.
