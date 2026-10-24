@@ -2,10 +2,10 @@
 
 ## Release 0.2.0
 
-This source and documentation target **0.2.0**, pending publication.
-After publication, install with `bun add fetchzen`,
+**[FetchZen 0.2.0](https://www.npmjs.com/package/fetchzen/v/0.2.0) is published on npm.**
+Install with `bun add fetchzen`,
 `npm install fetchzen`, or `pnpm add fetchzen`.
-The release will use npm's `latest` dist-tag; it is not published by this change.
+Version **0.2.0** is available under npm's `latest` dist-tag.
 
 ### Support and limits
 

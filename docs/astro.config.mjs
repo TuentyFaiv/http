@@ -1,21 +1,26 @@
 import cloudflare from "@astrojs/cloudflare";
 import mdx from "@astrojs/mdx";
 import starlight from "@astrojs/starlight";
-import { defineConfig, sessionDrivers } from "astro/config";
+import { defineConfig } from "astro/config";
 
 import { codeThemes } from "./src/code-themes.mjs";
+import { starlightWorkerHtmlParser } from "./starlight-worker-html.mjs";
 
 export default defineConfig({
 	site: process.env.DOCS_SITE || "https://http.tuentyfaiv.com",
 	adapter: cloudflare({ prerenderEnvironment: "node", imageService: "compile" }),
 	// Demos do not use sessions; avoid the adapter's automatic KV provisioning.
-	session: { driver: sessionDrivers.null() },
+	session: false,
+	// Preserve Astro 6's HTML-aware whitespace instead of Astro 7's JSX-style default.
+	// biome-ignore lint/style/useNamingConvention: Astro's configuration key.
+	compressHTML: true,
 	trailingSlash: "always",
+	vite: { plugins: [starlightWorkerHtmlParser()] },
 	integrations: [
 		starlight({
-			// A body stylesheet blocks parsing below the first code block on slow connections.
+			// Inline set:html styles do not compile reliably in this stack; use real CSS assets.
 			expressiveCode: {
-				emitExternalStylesheet: false,
+				emitExternalStylesheet: true,
 				themes: codeThemes,
 				useStarlightDarkModeSwitch: true,
 				useStarlightUiThemeColors: false,
@@ -57,6 +62,9 @@ export default defineConfig({
 			},
 			customCss: ["./src/styles/custom.css", "./src/styles/docs-layout.css"],
 			components: {
+				// Keep native popovers aligned with this site's wider sidebar breakpoint.
+				// biome-ignore lint/style/useNamingConvention: required by the Starlight integration
+				PageFrame: "./src/components/page-frame.astro",
 				// biome-ignore lint/style/useNamingConvention: required by the Starlight integration
 				Head: "./src/components/starlight-head.astro",
 				// The bypass link is visible in the sidebar, not revealed over the header on Tab.
@@ -123,7 +131,7 @@ export default defineConfig({
 				},
 			],
 		}),
-		// Run after Starlight's code-block integration; explicitly keep GFM tables enabled in MDX.
-		mdx({ gfm: true, optimize: true }),
+		// Astro 7's Markdown processor handles GFM for both Markdown and MDX.
+		mdx({ optimize: true }),
 	],
 });

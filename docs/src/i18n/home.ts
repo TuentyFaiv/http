@@ -8,7 +8,7 @@ const spanish = {
 		"Un cliente reutilizable para tu API. Resultados tipados, valores predeterminados bien pensados y espacio para tus convenciones.",
 	"Try a live example": "Prueba un ejemplo",
 	Version: "Versión",
-	"Not published yet": "Aún sin publicar",
+	"Published on npm": "Publicado en npm",
 	"Response path": "Ruta de la respuesta",
 	"Your preset": "Tu preset",
 	"Typed result": "Resultado tipado",

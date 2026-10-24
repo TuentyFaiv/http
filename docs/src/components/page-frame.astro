@@ -1,0 +1,85 @@
+---
+import MobileMenuToggle from "@astrojs/starlight/components/MobileMenuToggle.astro";
+
+const { hasSidebar } = Astro.locals.starlightRoute;
+---
+
+<div class="page sl-flex">
+	<header class="header"><slot name="header" /></header>
+	{hasSidebar && (
+			<nav class="sidebar print:hidden" aria-label={Astro.locals.t("sidebarNav.accessibleLabel")}>
+				<MobileMenuToggle />
+				<div popover="auto" id="starlight__sidebar" class="sidebar-pane">
+					<div class="sidebar-content sl-flex"><slot name="sidebar" /></div>
+				</div>
+			</nav>
+		)}
+	<div class="main-frame"><slot /></div>
+</div>
+
+<script>
+	const sidebar = document.getElementById("starlight__sidebar");
+	if (sidebar) {
+		// Starlight's default PageFrame switches at 50rem; our reading layout needs
+		// overlay navigation until 112rem. Keep the native button and popover behavior.
+		const wideLayout = matchMedia("(min-width: 112rem)");
+		const syncPopover = () => {
+			sidebar.popover = wideLayout.matches ? null : "auto";
+		};
+		sidebar.addEventListener("beforetoggle", (event) => {
+			// Release inert before a sidebar bypass tries to focus the page title.
+			for (const element of document.querySelectorAll(".main-frame, .sl-skip-link")) {
+				element.toggleAttribute("inert", event.newState === "open");
+			}
+		});
+		syncPopover();
+		wideLayout.addEventListener("change", syncPopover);
+	}
+</script>
+
+<style>
+	.page {
+		flex-direction: column;
+		min-height: 100vh;
+	}
+
+	.header {
+		position: fixed;
+		inset-block-start: 0;
+		inset-inline-start: 0;
+		z-index: var(--sl-z-index-navbar);
+		width: 100%;
+		height: var(--sl-nav-height);
+		padding: var(--sl-nav-pad-y) var(--sl-nav-pad-x);
+		background-color: var(--sl-color-bg-nav);
+		border-bottom: 1px solid var(--sl-color-hairline-shade);
+	}
+
+	.sidebar-pane {
+		position: fixed;
+		inset-block: var(--sl-nav-height) 0;
+		inset-inline-start: 0;
+		z-index: var(--sl-z-index-menu);
+		height: auto;
+		padding: 0;
+		margin: 0;
+		overflow-y: auto;
+		scrollbar-gutter: stable;
+		color: inherit;
+		background-color: var(--sl-color-bg-sidebar);
+		border: 0;
+	}
+
+	.sidebar-content {
+		flex-direction: column;
+		gap: 1rem;
+		height: 100%;
+		min-height: max-content;
+		padding: 1rem var(--sl-sidebar-pad-x) 0;
+	}
+
+	.main-frame {
+		padding-inline-start: var(--sl-content-inline-start);
+		padding-top: calc(var(--sl-nav-height) + var(--sl-mobile-toc-height));
+	}
+</style>

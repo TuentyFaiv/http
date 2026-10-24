@@ -1,5 +1,5 @@
 /* biome-ignore-all lint/style/noDescendingSpecificity: Each native component has a separate parent; state overrides intentionally follow its base rules. */
-/* Starlight 0.39.3: keep native markup, labels, and scripts; replace only its artwork.
+/* Starlight 0.42: keep native controls and popover behavior; replace only artwork.
  * --fz-icon-* is generated from PenIcon by starlight-head.astro, never copied paths.
  * Keep these selectors scoped to documentation chrome, not landing/live-example SVGs.
  */
@@ -10,7 +10,7 @@
 /* SVG backgrounds remain currentColor masks even when ThemeProvider swaps their children. */
 :where(
 	.content-panel > .sl-container > p.sl-flex > svg,
-	starlight-menu-button button > svg,
+	.sl-menu-button > svg,
 	starlight-theme-select svg.icon,
 	starlight-lang-select svg.icon,
 	site-search button[data-open-modal] > svg,
@@ -36,7 +36,7 @@
 
 :is(
 		.content-panel > .sl-container > p.sl-flex > svg,
-		starlight-menu-button button > svg,
+		.sl-menu-button > svg,
 		starlight-theme-select svg.icon,
 		starlight-lang-select svg.icon,
 		site-search button[data-open-modal] > svg,
@@ -54,11 +54,11 @@
 	display: none;
 }
 
-starlight-menu-button .open-menu {
+.sl-menu-button .open-menu {
 	--fz-control-icon: var(--fz-icon-menu);
 }
 
-starlight-menu-button .close-menu {
+.sl-menu-button .close-menu {
 	--fz-control-icon: var(--fz-icon-close);
 }
 
@@ -170,7 +170,7 @@ a.kudos > svg {
 }
 
 :is(
-	starlight-menu-button button,
+	.sl-menu-button,
 	site-search button[data-open-modal],
 	site-search button[data-close-modal],
 	.social-icons a[rel="me"],
@@ -187,14 +187,14 @@ a.kudos > svg {
 	min-height: 2.75rem;
 }
 
-starlight-menu-button button,
+.sl-menu-button,
 site-search button[data-open-modal],
 site-search button[data-close-modal],
 .social-icons a[rel="me"] {
 	min-width: 2.75rem;
 }
 
-starlight-menu-button button {
+.sl-menu-button {
 	align-items: center;
 	justify-content: center;
 	color: var(--fz-ink);
@@ -220,7 +220,7 @@ site-search dialog,
 	border-radius: var(--fz-radius-panel);
 }
 
-starlight-menu-button[aria-expanded="true"] button {
+.sl-menu-button:has(~ :popover-open) {
 	color: var(--fz-violet);
 	background: var(--fz-page);
 }
@@ -495,7 +495,7 @@ site-search dialog::backdrop {
 
 @media (forced-colors: active) {
 	:is(
-			starlight-menu-button,
+			.sl-menu-button,
 			starlight-theme-select,
 			starlight-lang-select,
 			site-search,

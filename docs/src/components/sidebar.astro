@@ -14,9 +14,10 @@ const iconSize = 20;
 
 <script>
 	document.querySelector<HTMLAnchorElement>("[data-content-link]")?.addEventListener("click", () => {
-		// Match the native menu's expanded state, then focus the actual destination.
-		document.querySelector("starlight-menu-button")?.setAttribute("aria-expanded", "false");
-		document.body.removeAttribute("data-mobile-menu-expanded");
+		const sidebar = document.getElementById("starlight__sidebar");
+		if (sidebar?.matches(":popover-open")) {
+			sidebar.hidePopover();
+		}
 		const title = document.getElementById("_top");
 		title?.setAttribute("tabindex", "-1");
 		title?.focus({ preventScroll: true });
