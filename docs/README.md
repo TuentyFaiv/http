@@ -55,6 +55,17 @@ not use sessions. Image optimization happens at build time, not via a paid Image
 Do not upload `dist` as a Pages project or deploy only `dist/client`: the dynamic
 examples require the Worker as well as its static assets.
 
+### Observability
+
+`wrangler.jsonc` enables Workers Logs, traces, and Issues, with 100% sampling for
+logs and traces. Astro carries these settings into the generated deployment
+configuration. Keep the source configuration in sync with the intended production
+settings: a Wrangler deployment can overwrite dashboard-only changes.
+
+Review telemetry volume, account limits, and costs before deployment. Do not log
+credentials, authorization headers, or request bodies. Enabling observability does
+not add application-level payload logging or configure external telemetry exports.
+
 ### Optional FetchZen domain
 
 The existing origin stays in place until a replacement is registered and configured.
@@ -84,6 +95,18 @@ through workflow_dispatch**, not automatically on pushes. Create a protected
 Then manually run **Deploy docs to Workers**. Pull requests still build the docs
 without Cloudflare credentials. Never put account tokens in public environment
 variables, client scripts, the repository, or uploaded example files.
+
+Cloudflare Workers Builds is a separate Git integration and can automatically
+deploy on changes to its production branch, independently of this manual GitHub
+workflow. GitHub CI's **Build docs** job only builds; it does not deploy.
+Use one normal production deployment path and reserve the other for intentional
+manual deployments.
+
+In Workers Builds, keep the build and deploy commands separate. Do not use the
+docs workspace's `bun run deploy` as the build command: it already runs both
+`astro build` and `wrangler deploy`, so a subsequent deploy command would deploy
+again. Inspect the build log and version IDs before treating a build-history row
+and a Wrangler deployment row as two separate builds.
 
 ## Demo API
 
